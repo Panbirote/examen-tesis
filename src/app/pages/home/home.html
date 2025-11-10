@@ -1,1 +1,115 @@
-<p>home works!</p>
+<div class="home-wrapper">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">P</div>
+      <div class="logo-title">PISA</div>
+      <div class="logo-subtitle">Programa para la Evaluación Internacional de Alumnos</div>
+    </div>
+  </header>
+  
+  <nav>
+    <a href="#" class="nav-link">Inicio</a>
+    <a href="#" class="nav-link">Instrucciones</a>
+    <a href="#" class="nav-link">Matemáticas</a>
+    <a href="#" class="nav-link">Lectura</a>
+    <a href="#" class="nav-link">Ciencias</a>
+    <a href="#" class="nav-link">Ayuda</a>
+    <button class="logout-btn" (click)="logout()">Cerrar Sesión</button>
+  </nav>
+  
+  <div class="container">
+    <div class="welcome-section">
+      <h1>Bienvenido al Examen PISA</h1>
+      <p class="user-info">👤 Sesión iniciada como: <strong>{{ userEmail() }}</strong></p>
+      <p>Esta evaluación internacional mide tus habilidades en matemáticas, lectura y ciencias. Lee cuidadosamente cada pregunta y responde lo mejor que puedas. Los resultados nos ayudarán a entender y mejorar los sistemas educativos globalmente. ¡Mucha suerte!</p>
+    </div>
+    
+    <div class="timer-container">
+      Tiempo restante: <span class="timer">{{ timerDisplay() }}</span>
+    </div>
+    
+    <div class="exam-sections">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon">📊</div>
+          <h2>Matemáticas</h2>
+        </div>
+        <div class="section-content">
+          <p>Evalúa tu capacidad para formular, emplear e interpretar las matemáticas en diversos contextos y situaciones del mundo real.</p>
+          <div class="section-stats">
+            <span>📝 30 preguntas</span> • <span>⏱️ 60 minutos</span>
+          </div>
+          <a href="#" class="btn">Comenzar sección</a>
+        </div>
+      </div>
+      
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon">📚</div>
+          <h2>Lectura</h2>
+        </div>
+        <div class="section-content">
+          <p>Mide tu comprensión, uso y reflexión sobre textos escritos para alcanzar objetivos personales y participar efectivamente en la sociedad.</p>
+          <div class="section-stats">
+            <span>📝 25 preguntas</span> • <span>⏱️ 50 minutos</span>
+          </div>
+          <a href="#" class="btn">Comenzar sección</a>
+        </div>
+      </div>
+      
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-icon">🔬</div>
+          <h2>Ciencias</h2>
+        </div>
+        <div class="section-content">
+          <p>Evalúa tu conocimiento científico y la capacidad de aplicarlo en situaciones de la vida real, identificando cuestiones e ideas basadas en evidencia.</p>
+          <div class="section-stats">
+            <span>📝 28 preguntas</span> • <span>⏱️ 55 minutos</span>
+          </div>
+          <a href="#" class="btn">Comenzar sección</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="info-section">
+      <h2>Información importante</h2>
+      <p>El examen PISA (Programa para la Evaluación Internacional de Alumnos) es una evaluación estandarizada desarrollada por la OCDE que mide el rendimiento de los estudiantes de 15 años. Este examen permite comparar sistemas educativos a nivel mundial y proporcionar información valiosa para la mejora de la educación.</p>
+      
+      <div class="info-grid">
+        <div class="info-item">
+          <i>📋</i>
+          <h3>Instrucciones</h3>
+          <p>Lee cuidadosamente cada pregunta antes de responder. Asegúrate de entender lo que se te pide.</p>
+        </div>
+        
+        <div class="info-item">
+          <i>⏱️</i>
+          <h3>Gestión del tiempo</h3>
+          <p>Administra bien tu tiempo en cada sección. No dediques demasiado tiempo a una sola pregunta.</p>
+        </div>
+        
+        <div class="info-item">
+          <i>📝</i>
+          <h3>Revisión</h3>
+          <p>Revisa tus respuestas antes de finalizar cada sección si el tiempo lo permite.</p>
+        </div>
+        
+        <div class="info-item">
+          <i>💻</i>
+          <h3>Herramientas digitales</h3>
+          <p>Familiarízate con las herramientas interactivas disponibles durante el examen.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <div class="footer-content">
+      <p>&copy; 2025 Programa para la Evaluación Internacional de Alumnos (PISA) - OCDE</p>
+      <p>Contacto: pisa@ejemplo.com | Soporte Técnico: soporte@ejemplo.com</p>
+    </div>
+  </footer>
+  
+  <div class="help-float" (click)="showHelp()">?</div>
+</div>
