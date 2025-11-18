@@ -4,6 +4,7 @@
   display: block;
   height: 100vh;
   font-family: 'Poppins', sans-serif;
+  width: 100%;
 }
 
 .login-container {
@@ -94,7 +95,6 @@
 .logo-icon {
   font-size: 48px;
   font-weight: bold;
-  color: #3a6ea5;
   display: inline-block;
   padding: 15px 25px;
   border-radius: 50%;

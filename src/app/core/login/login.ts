@@ -31,9 +31,21 @@ export class Login {
     setTimeout(() => {
       // Aquí irá tu lógica de autenticación real
       if (this.email() === 'estudiante@ejemplo.com' && this.password() === '123456') {
-        // Guardar sesión
-        localStorage.setItem('user', JSON.stringify({ email: this.email() }));
+        // Guardar sesión de estudiante
+        localStorage.setItem('user', JSON.stringify({ 
+          email: this.email(), 
+          type: 'student',
+          name: 'Estudiante'
+        }));
         this.router.navigate(['/home']);
+      } else if (this.email() === 'profesor@ejemplo.com' && this.password() === '123456') {
+        // Guardar sesión de profesor
+        localStorage.setItem('user', JSON.stringify({ 
+          email: this.email(), 
+          type: 'teacher',
+          name: 'Profesor García'
+        }));
+        this.router.navigate(['/profesor-home']);
       } else {
         this.errorMessage.set('Credenciales incorrectas');
         this.isLoading.set(false);

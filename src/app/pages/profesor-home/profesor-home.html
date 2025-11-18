@@ -1,0 +1,434 @@
+<div class="profesor-wrapper">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">P</div>
+      <div class="logo-title">PISA</div>
+      <div class="logo-subtitle">Panel de Administración - Profesores</div>
+    </div>
+  </header>
+  
+  <nav>
+    <a href="#inicio" class="nav-link active">Inicio</a>
+    <a href="#examenes" class="nav-link">Mis Exámenes</a>
+    <a href="#crear" class="nav-link">Crear Examen</a>
+    <a href="#estudiantes" class="nav-link">Estudiantes</a>
+    <a href="#resultados" class="nav-link">Resultados</a>
+    <a href="#reportes" class="nav-link">Reportes</a>
+    <button class="logout-btn" (click)="logout()">
+      <span>🚪</span> Cerrar Sesión
+    </button>
+  </nav>
+  
+  <div class="container">
+    <!-- Sección de Bienvenida -->
+    <div class="welcome-section" id="inicio">
+      <h1>Bienvenido, {{ profesorName() }}</h1>
+      <p class="user-info">👨‍🏫 Panel de Profesor: <strong>{{ profesorEmail() }}</strong></p>
+      <p>Gestiona tus exámenes, monitorea el progreso de tus estudiantes y crea evaluaciones personalizadas para el programa PISA.</p>
+    </div>
+    
+    <!-- Estadísticas Generales -->
+    <div class="stats-grid">
+      <div class="stat-card stat-primary">
+        <div class="stat-icon">📚</div>
+        <div class="stat-content">
+          <h3>{{ stats().totalExams }}</h3>
+          <p>Exámenes Totales</p>
+          <span class="stat-trend">+2 este mes</span>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3>{{ stats().activeExams }}</h3>
+          <p>Exámenes Activos</p>
+          <span class="stat-trend">En progreso</span>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-info">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <h3>{{ stats().totalStudents }}</h3>
+          <p>Estudiantes Totales</p>
+          <span class="stat-trend">3 grupos</span>
+        </div>
+      </div>
+      
+      <div class="stat-card stat-warning">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <h3>{{ stats().completedExams }}</h3>
+          <p>Exámenes Completados</p>
+          <span class="stat-trend">85% promedio</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Crear Nuevo Examen - Destacado -->
+    <div class="create-exam-section" id="crear">
+      <div class="create-exam-card">
+        <div class="create-icon">➕</div>
+        <h2>Crear Nuevo Examen</h2>
+        <p>Diseña un examen personalizado con preguntas de matemáticas, lectura o ciencias adaptadas a las necesidades de tus estudiantes.</p>
+        <button class="btn-create primary" (click)="createNewExam()">
+          <span>📝</span>
+          <span>Crear Examen</span>
+          <span class="arrow">→</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Gestión de Exámenes -->
+    <div class="exams-section" id="examenes">
+      <div class="section-header-flex">
+        <div class="section-title-group">
+          <h2>Mis Exámenes</h2>
+          <span class="subtitle">Gestiona y monitorea tus evaluaciones</span>
+        </div>
+        <div class="filter-buttons">
+          <button class="filter-btn active">
+            <span>📋</span> Todos ({{ exams().length }})
+          </button>
+          <button class="filter-btn">
+            <span>✅</span> Activos ({{ stats().activeExams }})
+          </button>
+          <button class="filter-btn">
+            <span>📝</span> Borradores
+          </button>
+          <button class="filter-btn">
+            <span>✔️</span> Completados
+          </button>
+        </div>
+      </div>
+      
+      <div class="exams-grid">
+        @for (exam of exams(); track exam.id) {
+          <div class="exam-card" [attr.data-status]="exam.status">
+            <div class="exam-header">
+              <div class="exam-subject-badge" [class]="'subject-' + exam.subject.toLowerCase()">
+                @if (exam.subject === 'Matemáticas') {
+                  <span class="subject-icon">📊</span>
+                } @else if (exam.subject === 'Lectura') {
+                  <span class="subject-icon">📚</span>
+                } @else if (exam.subject === 'Ciencias') {
+                  <span class="subject-icon">🔬</span>
+                }
+                <span>{{ exam.subject }}</span>
+              </div>
+              <span class="exam-status" [ngClass]="getStatusClass(exam.status)">
+                {{ getStatusText(exam.status) }}
+              </span>
+            </div>
+            
+            <div class="exam-body">
+              <h3>{{ exam.title }}</h3>
+              <div class="exam-info">
+                <div class="info-item">
+                  <span class="info-icon">📝</span>
+                  <span><strong>{{ exam.questions }}</strong> preguntas</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-icon">👥</span>
+                  <span><strong>{{ exam.students }}</strong> estudiantes</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-icon">📅</span>
+                  <span>{{ exam.createdDate }}</span>
+                </div>
+                @if (exam.status === 'active') {
+                  <div class="info-item progress-item">
+                    <span class="info-icon">⏱️</span>
+                    <span>En curso</span>
+                  </div>
+                }
+              </div>
+              
+              <!-- Barra de progreso para exámenes activos -->
+              @if (exam.status === 'active' && exam.students > 0) {
+                <div class="progress-section">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="(exam.students / 50 * 100)"></div>
+                  </div>
+                  <span class="progress-text">{{ exam.students }}/50 estudiantes</span>
+                </div>
+              }
+            </div>
+            
+            <div class="exam-actions">
+              @if (exam.status === 'draft') {
+                <button class="action-btn btn-edit" (click)="editExam(exam.id)" title="Editar examen">
+                  <span>✏️</span> Editar
+                </button>
+                <button class="action-btn btn-publish" (click)="publishExam(exam.id)" title="Publicar examen">
+                  <span>🚀</span> Publicar
+                </button>
+              }
+              @if (exam.status === 'active') {
+                <button class="action-btn btn-results" (click)="viewResults(exam.id)" title="Ver resultados">
+                  <span>📊</span> Resultados
+                </button>
+                <button class="action-btn btn-monitor" (click)="monitorExam(exam.id)" title="Monitorear en vivo">
+                  <span>👁️</span> Monitorear
+                </button>
+              }
+              @if (exam.status === 'completed') {
+                <button class="action-btn btn-results" (click)="viewResults(exam.id)" title="Ver resultados">
+                  <span>📊</span> Resultados
+                </button>
+                <button class="action-btn btn-download" (click)="downloadReport(exam.id)" title="Descargar reporte">
+                  <span>📥</span> Descargar
+                </button>
+              }
+              <button class="action-btn btn-more" (click)="showExamMenu(exam.id)" title="Más opciones">
+                <span>⋮</span>
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="empty-state">
+            <div class="empty-icon">📚</div>
+            <h3>No hay exámenes aún</h3>
+            <p>Comienza creando tu primer examen para tus estudiantes</p>
+            <button class="btn-create primary" (click)="createNewExam()">
+              <span>➕</span> Crear Primer Examen
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+    
+    <!-- Sección de Estudiantes -->
+    <div class="students-section" id="estudiantes">
+      <div class="section-header-flex">
+        <div class="section-title-group">
+          <h2>Gestión de Estudiantes</h2>
+          <span class="subtitle">Administra tu lista de estudiantes y grupos</span>
+        </div>
+        <button class="btn-action" (click)="addStudent()">
+          <span>➕</span> Agregar Estudiante
+        </button>
+      </div>
+      
+      <div class="students-grid">
+        <div class="student-group-card">
+          <div class="group-header">
+            <h3>Grupo A - Matemáticas</h3>
+            <span class="group-count">28 estudiantes</span>
+          </div>
+          <div class="group-stats">
+            <div class="group-stat">
+              <span class="stat-label">Promedio</span>
+              <span class="stat-value success">87%</span>
+            </div>
+            <div class="group-stat">
+              <span class="stat-label">Participación</span>
+              <span class="stat-value info">95%</span>
+            </div>
+          </div>
+          <button class="btn-link" (click)="viewGroup('A')">Ver detalles →</button>
+        </div>
+        
+        <div class="student-group-card">
+          <div class="group-header">
+            <h3>Grupo B - Lectura</h3>
+            <span class="group-count">25 estudiantes</span>
+          </div>
+          <div class="group-stats">
+            <div class="group-stat">
+              <span class="stat-label">Promedio</span>
+              <span class="stat-value success">82%</span>
+            </div>
+            <div class="group-stat">
+              <span class="stat-label">Participación</span>
+              <span class="stat-value warning">78%</span>
+            </div>
+          </div>
+          <button class="btn-link" (click)="viewGroup('B')">Ver detalles →</button>
+        </div>
+        
+        <div class="student-group-card">
+          <div class="group-header">
+            <h3>Grupo C - Ciencias</h3>
+            <span class="group-count">32 estudiantes</span>
+          </div>
+          <div class="group-stats">
+            <div class="group-stat">
+              <span class="stat-label">Promedio</span>
+              <span class="stat-value success">90%</span>
+            </div>
+            <div class="group-stat">
+              <span class="stat-label">Participación</span>
+              <span class="stat-value success">92%</span>
+            </div>
+          </div>
+          <button class="btn-link" (click)="viewGroup('C')">Ver detalles →</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Sección de Resultados y Análisis -->
+    <div class="results-section" id="resultados">
+      <div class="section-header-flex">
+        <div class="section-title-group">
+          <h2>Análisis de Resultados</h2>
+          <span class="subtitle">Visualiza el desempeño y tendencias</span>
+        </div>
+        <button class="btn-action" (click)="exportAllResults()">
+          <span>📤</span> Exportar Todo
+        </button>
+      </div>
+      
+      <div class="results-grid">
+        <div class="result-card">
+          <div class="result-header">
+            <h4>Desempeño General</h4>
+            <span class="period">Último mes</span>
+          </div>
+          <div class="result-chart">
+            <div class="chart-placeholder">
+              📈
+              <p>Gráfico de tendencias</p>
+            </div>
+          </div>
+          <button class="btn-link" (click)="viewDetailedAnalysis()">Ver análisis completo →</button>
+        </div>
+        
+        <div class="result-card">
+          <div class="result-header">
+            <h4>Áreas de Mejora</h4>
+            <span class="period">Identificadas</span>
+          </div>
+          <div class="improvement-list">
+            <div class="improvement-item">
+              <span class="subject-tag math">Matemáticas</span>
+              <span class="topic">Álgebra lineal</span>
+              <span class="percentage warning">65%</span>
+            </div>
+            <div class="improvement-item">
+              <span class="subject-tag reading">Lectura</span>
+              <span class="topic">Comprensión inferencial</span>
+              <span class="percentage warning">70%</span>
+            </div>
+            <div class="improvement-item">
+              <span class="subject-tag science">Ciencias</span>
+              <span class="topic">Método científico</span>
+              <span class="percentage success">85%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Acceso Rápido y Herramientas -->
+    <div class="quick-access-section" id="reportes">
+      <h2>Herramientas y Recursos</h2>
+      <div class="quick-grid">
+        <div class="quick-card" (click)="openQuestionBank()">
+          <i>📋</i>
+          <h3>Banco de Preguntas</h3>
+          <p>Accede a más de 500 preguntas clasificadas por materia y dificultad</p>
+          <div class="quick-stats">
+            <span class="stat-badge">500+ preguntas</span>
+          </div>
+          <a href="#" class="quick-link">Explorar banco →</a>
+        </div>
+        
+        <div class="quick-card" (click)="openAnalytics()">
+          <i>📈</i>
+          <h3>Dashboard Analítico</h3>
+          <p>Visualiza métricas detalladas, comparativas y estadísticas avanzadas</p>
+          <div class="quick-stats">
+            <span class="stat-badge">En tiempo real</span>
+          </div>
+          <a href="#" class="quick-link">Ver dashboard →</a>
+        </div>
+        
+        <div class="quick-card" (click)="manageStudents()">
+          <i>👨‍🎓</i>
+          <h3>Gestión de Estudiantes</h3>
+          <p>Importa, exporta y administra tu lista completa de estudiantes</p>
+          <div class="quick-stats">
+            <span class="stat-badge">{{ stats().totalStudents }} activos</span>
+          </div>
+          <a href="#" class="quick-link">Gestionar →</a>
+        </div>
+        
+        <div class="quick-card" (click)="exportReports()">
+          <i>📄</i>
+          <h3>Generar Reportes</h3>
+          <p>Crea reportes personalizados en PDF, Excel o CSV con gráficos</p>
+          <div class="quick-stats">
+            <span class="stat-badge">Múltiples formatos</span>
+          </div>
+          <a href="#" class="quick-link">Generar →</a>
+        </div>
+        
+        <div class="quick-card" (click)="accessCalendar()">
+          <i>📅</i>
+          <h3>Calendario de Exámenes</h3>
+          <p>Programa y visualiza todos tus exámenes en un calendario interactivo</p>
+          <div class="quick-stats">
+            <span class="stat-badge">{{ stats().activeExams }} próximos</span>
+          </div>
+          <a href="#" class="quick-link">Ver calendario →</a>
+        </div>
+        
+        <div class="quick-card" (click)="viewTemplates()">
+          <i>📑</i>
+          <h3>Plantillas de Exámenes</h3>
+          <p>Usa plantillas prediseñadas basadas en estándares PISA</p>
+          <div class="quick-stats">
+            <span class="stat-badge">20+ plantillas</span>
+          </div>
+          <a href="#" class="quick-link">Explorar →</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Notificaciones y Actividad Reciente -->
+    <div class="activity-section">
+      <h2>Actividad Reciente</h2>
+      <div class="activity-list">
+        <div class="activity-item">
+          <div class="activity-icon success">✅</div>
+          <div class="activity-content">
+            <h4>Examen completado</h4>
+            <p>28 estudiantes completaron "Álgebra Básica"</p>
+            <span class="activity-time">Hace 2 horas</span>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon info">👥</div>
+          <div class="activity-content">
+            <h4>Nuevos estudiantes</h4>
+            <p>5 estudiantes se unieron al Grupo B</p>
+            <span class="activity-time">Hace 5 horas</span>
+          </div>
+        </div>
+        
+        <div class="activity-item">
+          <div class="activity-icon warning">📊</div>
+          <div class="activity-content">
+            <h4>Resultados disponibles</h4>
+            <p>Los resultados de "Comprensión Lectora" están listos</p>
+            <span class="activity-time">Ayer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer>
+    <div class="footer-content">
+      <p>&copy; 2025 Programa para la Evaluación Internacional de Alumnos (PISA) - OCDE</p>
+      <p>Panel de Profesores | Contacto: profesores@ejemplo.com | Soporte Técnico: soporte@ejemplo.com</p>
+    </div>
+  </footer>
+  
+  <div class="help-float" (click)="showHelp()" title="Ayuda">
+    <span>?</span>
+  </div>
+</div>
