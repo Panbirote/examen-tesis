@@ -10,7 +10,7 @@
   <nav>
     <a href="#inicio" class="nav-link active">Inicio</a>
     <a href="#examenes" class="nav-link">Mis Exámenes</a>
-    <a href="#crear" class="nav-link">Crear Examen</a>
+    <a (click)="createNewExam()" class="nav-link" style="cursor: pointer;">Crear Examen</a>
     <a href="#estudiantes" class="nav-link">Estudiantes</a>
     <a href="#resultados" class="nav-link">Resultados</a>
     <a href="#reportes" class="nav-link">Reportes</a>
@@ -373,16 +373,6 @@
             <span class="stat-badge">{{ stats().activeExams }} próximos</span>
           </div>
           <a href="#" class="quick-link">Ver calendario →</a>
-        </div>
-        
-        <div class="quick-card" (click)="viewTemplates()">
-          <i>📑</i>
-          <h3>Plantillas de Exámenes</h3>
-          <p>Usa plantillas prediseñadas basadas en estándares PISA</p>
-          <div class="quick-stats">
-            <span class="stat-badge">20+ plantillas</span>
-          </div>
-          <a href="#" class="quick-link">Explorar →</a>
         </div>
       </div>
     </div>

@@ -252,6 +252,10 @@ export class CrearExamen implements OnInit {
     return types[type] || type;
   }
 
+  getOptionLetter(index: number): string {
+    return String.fromCharCode(65 + index);
+  }
+
   getTotalPoints(): number {
     return this.questions().reduce((sum, q) => sum + q.points, 0);
   }
