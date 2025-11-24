@@ -79,13 +79,6 @@
             <p class="info-value">{{ getTotalPoints() }}</p>
           </div>
         </div>
-        <div class="info-item">
-          <span class="info-icon">⏱️</span>
-          <div>
-            <p class="info-label">Duración</p>
-            <p class="info-value">{{ examDuration() }} min</p>
-          </div>
-        </div>
       </div>
     </aside>
 
@@ -165,56 +158,6 @@
                 <span class="char-counter">{{ examDescription().length }}/500</span>
               </div>
             </div>
-
-            <div class="input-group">
-              <label class="input-label">
-                <span class="label-text">Duración del Examen</span>
-              </label>
-              <div class="duration-selector">
-                <button 
-                  type="button"
-                  class="duration-btn" 
-                  [class.active]="examDuration() === 30"
-                  (click)="examDuration.set(30)"
-                >
-                  30 min
-                </button>
-                <button 
-                  type="button"
-                  class="duration-btn" 
-                  [class.active]="examDuration() === 45"
-                  (click)="examDuration.set(45)"
-                >
-                  45 min
-                </button>
-                <button 
-                  type="button"
-                  class="duration-btn" 
-                  [class.active]="examDuration() === 60"
-                  (click)="examDuration.set(60)"
-                >
-                  60 min
-                </button>
-                <button 
-                  type="button"
-                  class="duration-btn" 
-                  [class.active]="examDuration() === 90"
-                  (click)="examDuration.set(90)"
-                >
-                  90 min
-                </button>
-                <div class="duration-custom">
-                  <input
-                    type="number"
-                    [(ngModel)]="examDuration"
-                    min="5"
-                    max="180"
-                    class="duration-input"
-                  />
-                  <span>minutos</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <div class="actions-bar">
@@ -235,7 +178,7 @@
           <div class="content-header-with-action">
             <div>
               <h2 class="step-title">❓ Preguntas del Examen</h2>
-              <p class="step-description">Crea y organiza las preguntas de tu evaluación</p>
+              <p class="step-description">Crea preguntas de opción múltiple (A, B, C, D)</p>
             </div>
             <button type="button" class="btn btn-add-question" (click)="openQuestionModal()">
               <span class="plus-icon">+</span>
@@ -267,40 +210,25 @@
 
                   <div class="question-main">
                     <div class="question-meta">
-                      <span class="question-type-badge" [ngClass]="'badge-' + question.type">
-                        @if (question.type === 'multiple-choice') {
-                          <span class="badge-icon">📝</span> Opción Múltiple
-                        } @else if (question.type === 'true-false') {
-                          <span class="badge-icon">✓✗</span> Verdadero/Falso
-                        } @else {
-                          <span class="badge-icon">✍️</span> Abierta
-                        }
+                      <span class="question-type-badge badge-multiple-choice">
+                        <span class="badge-icon">📝</span> Opción Múltiple
                       </span>
                       <span class="question-points-badge">{{ question.points }} punto{{ question.points !== 1 ? 's' : '' }}</span>
                     </div>
 
                     <h4 class="question-text-preview">{{ question.question }}</h4>
 
-                    @if (question.type === 'multiple-choice' || question.type === 'true-false') {
-                      <div class="options-preview">
-                        @for (option of question.options; track $index; let j = $index) {
-                          <div class="option-preview" [class.is-correct]="question.correctAnswer === j">
-                            <span class="option-letter">{{ getOptionLetter(j) }}</span>
-                            <span class="option-text">{{ option }}</span>
-                            @if (question.correctAnswer === j) {
-                              <span class="correct-indicator">✓</span>
-                            }
-                          </div>
-                        }
-                      </div>
-                    }
-
-                    @if (question.type === 'open') {
-                      <div class="open-indicator">
-                        <span class="open-icon">📝</span>
-                        <span>Respuesta abierta - Calificación manual</span>
-                      </div>
-                    }
+                    <div class="options-preview">
+                      @for (option of question.options; track $index; let j = $index) {
+                        <div class="option-preview" [class.is-correct]="question.correctAnswer === j">
+                          <span class="option-letter">{{ getOptionLetter(j) }}</span>
+                          <span class="option-text">{{ option }}</span>
+                          @if (question.correctAnswer === j) {
+                            <span class="correct-indicator">✓</span>
+                          }
+                        </div>
+                      }
+                    </div>
                   </div>
 
                   <div class="question-actions-modern">
@@ -380,10 +308,6 @@
                     }
                   </span>
                 </div>
-                <div class="review-row">
-                  <span class="review-label">Duración</span>
-                  <span class="review-value">⏱️ {{ examDuration() }} minutos</span>
-                </div>
                 <div class="review-row full">
                   <span class="review-label">Descripción</span>
                   <p class="review-description">{{ examDescription() }}</p>
@@ -409,16 +333,6 @@
                 <div class="stat-content">
                   <p class="stat-number-large">{{ getTotalPoints() }}</p>
                   <p class="stat-label-large">Puntos Totales</p>
-                </div>
-              </div>
-
-              <div class="stat-card-modern">
-                <div class="stat-icon-wrapper blue">
-                  <span class="stat-icon-large">⏱️</span>
-                </div>
-                <div class="stat-content">
-                  <p class="stat-number-large">{{ examDuration() }}</p>
-                  <p class="stat-label-large">Minutos</p>
                 </div>
               </div>
             </div>
@@ -469,7 +383,7 @@
         <div class="modal-header-modern">
           <div class="modal-title-section">
             <h3>{{ editingQuestionId() ? '✏️ Editar Pregunta' : '➕ Nueva Pregunta' }}</h3>
-            <p>{{ editingQuestionId() ? 'Modifica la pregunta y sus opciones' : 'Crea una pregunta para tu examen' }}</p>
+            <p>{{ editingQuestionId() ? 'Modifica la pregunta y sus opciones' : 'Crea una pregunta de opción múltiple (A, B, C, D)' }}</p>
           </div>
           <button type="button" class="modal-close-btn" (click)="showQuestionModal.set(false)">
             <span>✕</span>
@@ -477,45 +391,6 @@
         </div>
 
         <div class="modal-body-modern">
-          <!-- Tipo de pregunta -->
-          <div class="form-section-modal">
-            <label class="section-label">Tipo de Pregunta</label>
-            <div class="type-selector-grid">
-              <button 
-                type="button"
-                class="type-card" 
-                [class.selected]="newQuestion().type === 'multiple-choice'"
-                (click)="updateQuestionType('multiple-choice')"
-              >
-                <span class="type-card-icon">📝</span>
-                <span class="type-card-name">Opción Múltiple</span>
-                <span class="type-card-desc">2-6 opciones</span>
-              </button>
-
-              <button 
-                type="button"
-                class="type-card" 
-                [class.selected]="newQuestion().type === 'true-false'"
-                (click)="updateQuestionType('true-false')"
-              >
-                <span class="type-card-icon">✓✗</span>
-                <span class="type-card-name">Verdadero/Falso</span>
-                <span class="type-card-desc">2 opciones</span>
-              </button>
-
-              <button 
-                type="button"
-                class="type-card" 
-                [class.selected]="newQuestion().type === 'open'"
-                (click)="updateQuestionType('open')"
-              >
-                <span class="type-card-icon">✍️</span>
-                <span class="type-card-name">Abierta</span>
-                <span class="type-card-desc">Respuesta libre</span>
-              </button>
-            </div>
-          </div>
-
           <!-- Pregunta -->
           <div class="form-section-modal">
             <label class="section-label">Pregunta <span class="required-star">*</span></label>
@@ -528,84 +403,35 @@
             ></textarea>
           </div>
 
-          <!-- Opciones - Opción Múltiple -->
-          @if (newQuestion().type === 'multiple-choice') {
-            <div class="form-section-modal">
-              <label class="section-label">Opciones de Respuesta</label>
-              <p class="section-hint">Marca la respuesta correcta</p>
-              
-              <div class="options-list-modal">
-                @for (option of newQuestion().options; track $index; let j = $index) {
-                  <div class="option-row">
-                    <label class="option-radio-wrapper">
-                      <input
-                        type="radio"
-                        name="correct"
-                        [checked]="newQuestion().correctAnswer === j"
-                        (change)="updateCorrectAnswer(j)"
-                      />
-                      <span class="radio-custom"></span>
-                    </label>
-                    
+          <!-- Opciones A, B, C, D -->
+          <div class="form-section-modal">
+            <label class="section-label">Opciones de Respuesta (A, B, C, D)</label>
+            <p class="section-hint">Marca la respuesta correcta</p>
+            
+            <div class="options-list-modal">
+              @for (option of newQuestion().options; track $index; let j = $index) {
+                <div class="option-row">
+                  <label class="option-radio-wrapper">
                     <input
-                      type="text"
-                      [value]="option"
-                      (input)="updateOption(j, $any($event.target).value)"
-                      [placeholder]="'Opción ' + getOptionLetter(j)"
-                      class="option-input"
+                      type="radio"
+                      name="correct"
+                      [checked]="newQuestion().correctAnswer === j"
+                      (change)="updateCorrectAnswer(j)"
                     />
-                    
-                    @if (newQuestion().options && newQuestion().options!.length > 2) {
-                      <button type="button" class="btn-remove-option" (click)="removeOption(j)">
-                        <span>✕</span>
-                      </button>
-                    }
-                  </div>
-                }
-              </div>
-
-              @if (newQuestion().options && newQuestion().options!.length < 6) {
-                <button type="button" class="btn-add-option-modal" (click)="addOption()">
-                  <span class="plus-small">+</span>
-                  Agregar Opción
-                </button>
+                    <span class="radio-custom"></span>
+                  </label>
+                  
+                  <input
+                    type="text"
+                    [value]="option"
+                    (input)="updateOption(j, $any($event.target).value)"
+                    [placeholder]="'Opción ' + getOptionLetter(j)"
+                    class="option-input"
+                  />
+                </div>
               }
             </div>
-          }
-
-          <!-- Opciones - Verdadero/Falso -->
-          @if (newQuestion().type === 'true-false') {
-            <div class="form-section-modal">
-              <label class="section-label">Respuesta Correcta</label>
-              <div class="tf-options">
-                <label class="tf-option" [class.selected]="newQuestion().correctAnswer === 0">
-                  <input
-                    type="radio"
-                    name="tf"
-                    [checked]="newQuestion().correctAnswer === 0"
-                    (change)="updateCorrectAnswer(0)"
-                  />
-                  <div class="tf-content">
-                    <span class="tf-icon true">✓</span>
-                    <span class="tf-label">Verdadero</span>
-                  </div>
-                </label>
-
-                <label class="tf-option" [class.selected]="newQuestion().correctAnswer === 1">
-                  <input
-                    type="radio"
-                    name="tf"
-                    [checked]="newQuestion().correctAnswer === 1"
-                    (change)="updateCorrectAnswer(1)"
-                  />
-                  <div class="tf-content">
-                    <span class="tf-icon false">✗</span>
-                    <span class="tf-label">Falso</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-          }
+          </div>
 
           <!-- Puntos -->
           <div class="form-section-modal">

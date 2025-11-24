@@ -5,10 +5,10 @@ import { FormsModule } from '@angular/forms';
 
 interface Question {
   id: string;
-  type: 'multiple-choice' | 'true-false' | 'open';
+  type: 'multiple-choice';
   question: string;
-  options?: string[];
-  correctAnswer?: string | number;
+  options: string[];
+  correctAnswer: number;
   points: number;
 }
 
@@ -23,7 +23,6 @@ export class CrearExamen implements OnInit {
   examTitle = signal('');
   examSubject = signal('');
   examDescription = signal('');
-  examDuration = signal(60);
   
   // Preguntas
   questions = signal<Question[]>([]);
@@ -111,12 +110,10 @@ export class CrearExamen implements OnInit {
       return;
     }
 
-    if (question.type === 'multiple-choice') {
-      const validOptions = question.options?.filter(opt => opt.trim() !== '');
-      if (!validOptions || validOptions.length < 2) {
-        alert('Por favor ingresa al menos 2 opciones');
-        return;
-      }
+    const validOptions = question.options.filter(opt => opt.trim() !== '');
+    if (validOptions.length < 4) {
+      alert('Por favor completa las 4 opciones (A, B, C, D)');
+      return;
     }
 
     const newQ: Question = {
@@ -186,39 +183,13 @@ export class CrearExamen implements OnInit {
   }
 
   // Utilidades
-  updateQuestionType(type: 'multiple-choice' | 'true-false' | 'open') {
-    const current = this.newQuestion();
-    if (type === 'true-false') {
-      this.newQuestion.set({
-        ...current,
-        type,
-        options: ['Verdadero', 'Falso'],
-        correctAnswer: 0
-      });
-    } else if (type === 'open') {
-      this.newQuestion.set({
-        ...current,
-        type,
-        options: undefined,
-        correctAnswer: undefined
-      });
-    } else {
-      this.newQuestion.set({
-        ...current,
-        type,
-        options: ['', '', '', ''],
-        correctAnswer: 0
-      });
-    }
-  }
-
   updateQuestionText(text: string) {
     this.newQuestion.set({ ...this.newQuestion(), question: text });
   }
 
   updateOption(index: number, value: string) {
     const current = this.newQuestion();
-    const newOptions = [...(current.options || [])];
+    const newOptions = [...current.options];
     newOptions[index] = value;
     this.newQuestion.set({ ...current, options: newOptions });
   }
@@ -229,27 +200,6 @@ export class CrearExamen implements OnInit {
 
   updatePoints(value: number) {
     this.newQuestion.set({ ...this.newQuestion(), points: value });
-  }
-
-  addOption() {
-    const current = this.newQuestion();
-    const newOptions = [...(current.options || []), ''];
-    this.newQuestion.set({ ...current, options: newOptions });
-  }
-
-  removeOption(index: number) {
-    const current = this.newQuestion();
-    const newOptions = current.options?.filter((_, i) => i !== index);
-    this.newQuestion.set({ ...current, options: newOptions });
-  }
-
-  getQuestionTypeText(type: string): string {
-    const types: { [key: string]: string } = {
-      'multiple-choice': 'Opción múltiple',
-      'true-false': 'Verdadero/Falso',
-      'open': 'Respuesta abierta'
-    };
-    return types[type] || type;
   }
 
   getOptionLetter(index: number): string {
@@ -273,7 +223,6 @@ export class CrearExamen implements OnInit {
       title: this.examTitle(),
       subject: this.examSubject(),
       description: this.examDescription(),
-      duration: this.examDuration(),
       questions: this.questions(),
       status,
       createdDate: new Date().toISOString(),
