@@ -99,10 +99,11 @@ export class ProfesorHome implements OnInit {
   }
 
   // Funciones de gestión de exámenes
-  createNewExam() {
+  
     //console.log('Creando nuevo examen desde cero...');
     //alert('Redirigiendo al creador de exámenes...\n\nAquí podrás:\n• Seleccionar materia\n• Agregar preguntas\n• Configurar tiempo\n• Asignar estudiantes');
-  this.router.navigate(['/pages/crear-examen/crear-examen']);
+ createNewExam() {
+    this.router.navigate(['/crear-examen']);
   }
 
   editExam(examId: string) {
