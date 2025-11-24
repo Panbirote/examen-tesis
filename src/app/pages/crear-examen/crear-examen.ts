@@ -50,7 +50,7 @@ export class CrearExamen implements OnInit {
     const user = localStorage.getItem('user');
     if (!user) {
       this.router.navigate(['/login']);
-      return;
+     return;
     }
   }
 

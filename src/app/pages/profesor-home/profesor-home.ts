@@ -100,15 +100,9 @@ export class ProfesorHome implements OnInit {
 
   // Funciones de gestión de exámenes
   createNewExam() {
-    console.log('Creando nuevo examen desde cero...');
-    alert('Redirigiendo al creador de exámenes...\n\nAquí podrás:\n• Seleccionar materia\n• Agregar preguntas\n• Configurar tiempo\n• Asignar estudiantes');
-    // TODO: this.router.navigate(['/profesor/crear-examen']);
-  }
-
-  createFromTemplate() {
-    console.log('Creando examen desde plantilla...');
-    alert('Selecciona una plantilla:\n\n• Matemáticas PISA Nivel 1\n• Lectura Comprensiva Básica\n• Ciencias Naturales Estándar\n• Examen Completo PISA');
-    // TODO: this.router.navigate(['/profesor/plantillas']);
+    //console.log('Creando nuevo examen desde cero...');
+    //alert('Redirigiendo al creador de exámenes...\n\nAquí podrás:\n• Seleccionar materia\n• Agregar preguntas\n• Configurar tiempo\n• Asignar estudiantes');
+  this.router.navigate(['/pages/crear-examen/crear-examen']);
   }
 
   editExam(examId: string) {
