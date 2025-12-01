@@ -2,10 +2,12 @@ import { Component, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { environment } from '../../app.config';
 
 @Component({
   selector: 'app-login',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, HttpClientModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -15,7 +17,7 @@ export class Login {
   errorMessage = signal('');
   isLoading = signal(false);
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private http: HttpClient) {}
 
   onSubmit() {
     this.errorMessage.set('');
@@ -27,29 +29,32 @@ export class Login {
 
     this.isLoading.set(true);
 
-    // Simulación de autenticación
-    setTimeout(() => {
-      // Aquí irá tu lógica de autenticación real
-      if (this.email() === 'estudiante@ejemplo.com' && this.password() === '123456') {
-        // Guardar sesión de estudiante
-        localStorage.setItem('user', JSON.stringify({ 
-          email: this.email(), 
-          type: 'student',
-          name: 'Estudiante'
-        }));
-        this.router.navigate(['/home']);
-      } else if (this.email() === 'profesor@ejemplo.com' && this.password() === '123456') {
-        // Guardar sesión de profesor
-        localStorage.setItem('user', JSON.stringify({ 
-          email: this.email(), 
-          type: 'teacher',
-          name: 'Profesor García'
-        }));
-        this.router.navigate(['/profesor-home']);
-      } else {
-        this.errorMessage.set('Credenciales incorrectas');
+    const body = {
+      correo: this.email(),
+      contraseña: this.password()
+    };
+
+    this.http.post(`${environment.apiUrl}/usuarios/login`, body, {
+      withCredentials: false
+    }).subscribe({
+      next: (resp: any) => {
+        if (resp.Success) {
+          localStorage.setItem('user', JSON.stringify({
+            email: this.email(),
+            type: 'student'
+          }));
+
+          this.router.navigate(['/home']);
+        } else {
+          this.errorMessage.set(resp.body || 'Error al iniciar sesión');
+        }
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        const msg = err.error?.body || "No se pudo conectar al servidor";
+        this.errorMessage.set(msg);
         this.isLoading.set(false);
       }
-    }, 1000);
+    });
   }
 }
