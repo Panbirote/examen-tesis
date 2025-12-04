@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { environment } from '../../app.config';
+import { jwtDecode } from 'jwt-decode';
 
 @Component({
   selector: 'app-login',
@@ -38,20 +39,46 @@ export class Login {
       withCredentials: false
     }).subscribe({
       next: (resp: any) => {
-        if (resp.Success) {
+        try {
+          if (!resp.Success) {
+            this.errorMessage.set(resp.body || 'Error al iniciar sesión');
+            this.isLoading.set(false);
+            return;
+          }
+
+          if (!resp.body) {
+            this.errorMessage.set("No se recibió el token del servidor");
+            this.isLoading.set(false);
+            return;
+          }
+
+          const token = resp.body;
+
+          // Decodificar el token
+          const decoded: any = jwtDecode(token);
+
+          // Validar que el token tenga lo que esperas
+
+
+          // Guardar datos del usuario
           localStorage.setItem('user', JSON.stringify({
             email: this.email(),
-            type: 'student'
+            type: decoded.tipousuario === 1 ? 'teacher' : 'student'
           }));
-          const rutainicio = resp.body?.tipousuario === 1 ? 'profesor-home' : 'home';  
 
+          // Definir ruta según el tipo de usuario
+          const rutainicio = decoded.tipoUsuario === 1 ? 'profesor-home' : 'home';
+
+          // Navegar
           this.router.navigate([`/${rutainicio}`]);
 
-        } else {
-          this.errorMessage.set(resp.body || 'Error al iniciar sesión');
+        } catch (error) {
+          this.errorMessage.set("Token inválido o imposible de procesar");
         }
+
         this.isLoading.set(false);
       },
+
       error: (err) => {
         const msg = err.error?.body || "No se pudo conectar al servidor";
         this.errorMessage.set(msg);

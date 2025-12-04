@@ -7,10 +7,15 @@ interface Question {
   id: string;
   type: 'multiple-choice';
   question: string;
-  description: string;
   options: string[];
   correctAnswer: number;
   points: number;
+}
+
+interface Problem {
+  id: string;
+  description: string;
+  questions: Question[];
 }
 
 @Component({
@@ -24,20 +29,28 @@ export class CrearExamen implements OnInit {
   examTitle = signal('');
   examSubject = signal('');
   
-  // Preguntas
-  questions = signal<Question[]>([]);
+  // Problemas (cada problema tiene múltiples preguntas)
+  problems = signal<Problem[]>([]);
   
   // Estado de la interfaz
   currentStep = signal(1);
+  showProblemModal = signal(false);
   showQuestionModal = signal(false);
+  editingProblemId = signal<string | null>(null);
   editingQuestionId = signal<string | null>(null);
+  
+  // Nuevo problema temporal
+  newProblem = signal<Problem>({
+    id: '',
+    description: '',
+    questions: []
+  });
   
   // Nueva pregunta temporal
   newQuestion = signal<Question>({
     id: '',
     type: 'multiple-choice',
     question: '',
-    description: '',
     options: ['', '', '', ''],
     correctAnswer: 0,
     points: 1
@@ -50,7 +63,7 @@ export class CrearExamen implements OnInit {
     const user = localStorage.getItem('user');
     if (!user) {
       this.router.navigate(['/login']);
-     return;
+      return;
     }
   }
 
@@ -81,32 +94,122 @@ export class CrearExamen implements OnInit {
     return true;
   }
 
-  // Gestión de preguntas
-  openQuestionModal() {
+  // Gestión de problemas
+  openProblemModal() {
+    this.editingProblemId.set(null);
+    this.resetNewProblem();
+    this.showProblemModal.set(true);
+  }
+
+  resetNewProblem() {
+    this.newProblem.set({
+      id: '',
+      description: '',
+      questions: []
+    });
+  }
+
+  addProblem() {
+    const problem = this.newProblem();
+    
+    if (!problem.description.trim()) {
+      alert('Por favor ingresa la descripción del problema');
+      return;
+    }
+
+    if (problem.questions.length === 0) {
+      alert('Por favor agrega al menos una pregunta al problema');
+      return;
+    }
+
+    const newP: Problem = {
+      ...problem,
+      id: Date.now().toString()
+    };
+
+    this.problems.set([...this.problems(), newP]);
+    this.showProblemModal.set(false);
+    this.resetNewProblem();
+  }
+
+  editProblem(problemId: string) {
+    const problem = this.problems().find(p => p.id === problemId);
+    if (problem) {
+      this.newProblem.set({ ...problem, questions: [...problem.questions] });
+      this.editingProblemId.set(problemId);
+      this.showProblemModal.set(true);
+    }
+  }
+
+  updateProblem() {
+    const problemId = this.editingProblemId();
+    if (!problemId) return;
+
+    const problem = this.newProblem();
+    
+    if (!problem.description.trim()) {
+      alert('Por favor ingresa la descripción del problema');
+      return;
+    }
+
+    if (problem.questions.length === 0) {
+      alert('El problema debe tener al menos una pregunta');
+      return;
+    }
+
+    const updatedProblems = this.problems().map(p =>
+      p.id === problemId ? { ...problem, id: problemId } : p
+    );
+
+    this.problems.set(updatedProblems);
+    this.showProblemModal.set(false);
+    this.resetNewProblem();
+    this.editingProblemId.set(null);
+  }
+
+  deleteProblem(problemId: string) {
+    if (confirm('¿Estás seguro de que deseas eliminar este problema y todas sus preguntas?')) {
+      this.problems.set(this.problems().filter(p => p.id !== problemId));
+    }
+  }
+
+  duplicateProblem(problemId: string) {
+    const problem = this.problems().find(p => p.id === problemId);
+    if (problem) {
+      const duplicated: Problem = {
+        ...problem,
+        id: Date.now().toString(),
+        questions: problem.questions.map(q => ({ ...q, id: Date.now().toString() + Math.random() }))
+      };
+      this.problems.set([...this.problems(), duplicated]);
+    }
+  }
+
+  moveProblemUp(index: number) {
+    if (index > 0) {
+      const newProblems = [...this.problems()];
+      [newProblems[index], newProblems[index - 1]] = [newProblems[index - 1], newProblems[index]];
+      this.problems.set(newProblems);
+    }
+  }
+
+  moveProblemDown(index: number) {
+    if (index < this.problems().length - 1) {
+      const newProblems = [...this.problems()];
+      [newProblems[index], newProblems[index + 1]] = [newProblems[index + 1], newProblems[index]];
+      this.problems.set(newProblems);
+    }
+  }
+
+  // Gestión de preguntas dentro del modal de problema
+  openQuestionModalInProblem() {
     this.editingQuestionId.set(null);
     this.resetNewQuestion();
     this.showQuestionModal.set(true);
   }
 
-  resetNewQuestion() {
-    this.newQuestion.set({
-      id: '',
-      type: 'multiple-choice',
-      question: '',
-      description: '',
-      options: ['', '', '', ''],
-      correctAnswer: 0,
-      points: 1
-    });
-  }
-
-  addQuestion() {
+  addQuestionToProblem() {
     const question = this.newQuestion();
-    
-    if (!question.description.trim()) {
-      alert('Por favor ingresa la descripción de la pregunta');
-      return;
-    }
     
     if (!question.question.trim()) {
       alert('Por favor ingresa el texto de la pregunta');
@@ -121,16 +224,21 @@ export class CrearExamen implements OnInit {
 
     const newQ: Question = {
       ...question,
-      id: Date.now().toString()
+      id: Date.now().toString() + Math.random()
     };
 
-    this.questions.set([...this.questions(), newQ]);
+    const currentProblem = this.newProblem();
+    this.newProblem.set({
+      ...currentProblem,
+      questions: [...currentProblem.questions, newQ]
+    });
+
     this.showQuestionModal.set(false);
     this.resetNewQuestion();
   }
 
-  editQuestion(questionId: string) {
-    const question = this.questions().find(q => q.id === questionId);
+  editQuestionInProblem(questionId: string) {
+    const question = this.newProblem().questions.find(q => q.id === questionId);
     if (question) {
       this.newQuestion.set({ ...question });
       this.editingQuestionId.set(questionId);
@@ -138,56 +246,80 @@ export class CrearExamen implements OnInit {
     }
   }
 
-  updateQuestion() {
+  updateQuestionInProblem() {
     const questionId = this.editingQuestionId();
     if (!questionId) return;
 
-    const updatedQuestions = this.questions().map(q =>
-      q.id === questionId ? { ...this.newQuestion(), id: questionId } : q
+    const question = this.newQuestion();
+    
+    if (!question.question.trim()) {
+      alert('Por favor ingresa el texto de la pregunta');
+      return;
+    }
+
+    const validOptions = question.options.filter(opt => opt.trim() !== '');
+    if (validOptions.length < 4) {
+      alert('Por favor completa las 4 opciones (A, B, C, D)');
+      return;
+    }
+
+    const currentProblem = this.newProblem();
+    const updatedQuestions = currentProblem.questions.map(q =>
+      q.id === questionId ? { ...question, id: questionId } : q
     );
 
-    this.questions.set(updatedQuestions);
+    this.newProblem.set({
+      ...currentProblem,
+      questions: updatedQuestions
+    });
+
     this.showQuestionModal.set(false);
     this.resetNewQuestion();
     this.editingQuestionId.set(null);
   }
 
-  deleteQuestion(questionId: string) {
+  deleteQuestionFromProblem(questionId: string) {
     if (confirm('¿Estás seguro de que deseas eliminar esta pregunta?')) {
-      this.questions.set(this.questions().filter(q => q.id !== questionId));
+      const currentProblem = this.newProblem();
+      this.newProblem.set({
+        ...currentProblem,
+        questions: currentProblem.questions.filter(q => q.id !== questionId)
+      });
     }
   }
 
-  duplicateQuestion(questionId: string) {
-    const question = this.questions().find(q => q.id === questionId);
-    if (question) {
-      const duplicated: Question = {
-        ...question,
-        id: Date.now().toString()
-      };
-      this.questions.set([...this.questions(), duplicated]);
-    }
-  }
-
-  moveQuestionUp(index: number) {
+  moveQuestionUpInProblem(index: number) {
+    const currentProblem = this.newProblem();
     if (index > 0) {
-      const newQuestions = [...this.questions()];
+      const newQuestions = [...currentProblem.questions];
       [newQuestions[index], newQuestions[index - 1]] = [newQuestions[index - 1], newQuestions[index]];
-      this.questions.set(newQuestions);
+      this.newProblem.set({ ...currentProblem, questions: newQuestions });
     }
   }
 
-  moveQuestionDown(index: number) {
-    if (index < this.questions().length - 1) {
-      const newQuestions = [...this.questions()];
+  moveQuestionDownInProblem(index: number) {
+    const currentProblem = this.newProblem();
+    if (index < currentProblem.questions.length - 1) {
+      const newQuestions = [...currentProblem.questions];
       [newQuestions[index], newQuestions[index + 1]] = [newQuestions[index + 1], newQuestions[index]];
-      this.questions.set(newQuestions);
+      this.newProblem.set({ ...currentProblem, questions: newQuestions });
     }
+  }
+
+  resetNewQuestion() {
+    this.newQuestion.set({
+      id: '',
+      type: 'multiple-choice',
+      question: '',
+      options: ['', '', '', ''],
+      correctAnswer: 0,
+      points: 1
+    });
   }
 
   // Utilidades
-  updateQuestionDescription(text: string) {
-    this.newQuestion.set({ ...this.newQuestion(), description: text });
+  updateProblemDescription(text: string) {
+    this.newProblem.set({ ...this.newProblem(), description: text });
   }
 
   updateQuestionText(text: string) {
@@ -214,25 +346,32 @@ export class CrearExamen implements OnInit {
   }
 
   getTotalPoints(): number {
-    return this.questions().reduce((sum, q) => sum + q.points, 0);
+    return this.problems().reduce((sum, problem) => 
+      sum + problem.questions.reduce((qSum, q) => qSum + q.points, 0), 0
+    );
+  }
+
+  getTotalQuestions(): number {
+    return this.problems().reduce((sum, problem) => sum + problem.questions.length, 0);
   }
 
   // Guardar examen
   saveExam(status: 'draft' | 'active') {
     if (!this.validateStep1()) return;
 
-    if (this.questions().length === 0) {
-      alert('Por favor agrega al menos una pregunta');
+    if (this.problems().length === 0) {
+      alert('Por favor agrega al menos un problema');
       return;
     }
 
     const exam = {
       title: this.examTitle(),
       subject: this.examSubject(),
-      questions: this.questions(),
+      problems: this.problems(),
       status,
       createdDate: new Date().toISOString(),
-      totalPoints: this.getTotalPoints()
+      totalPoints: this.getTotalPoints(),
+      totalQuestions: this.getTotalQuestions()
     };
 
     console.log('Guardando examen:', exam);
@@ -241,7 +380,7 @@ export class CrearExamen implements OnInit {
       ? '¡Examen guardado como borrador! ✅' 
       : '¡Examen publicado exitosamente! 🚀';
     
-    alert(message + '\n\nTítulo: ' + exam.title + '\nPreguntas: ' + exam.questions.length + '\nPuntos totales: ' + exam.totalPoints);
+    alert(message + '\n\nTítulo: ' + exam.title + '\nProblemas: ' + exam.problems.length + '\nPreguntas totales: ' + exam.totalQuestions + '\nPuntos totales: ' + exam.totalPoints);
     
     // TODO: Guardar en backend o localStorage
     this.router.navigate(['/profesor-home']);

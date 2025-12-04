@@ -44,8 +44,8 @@
             }
           </div>
           <div class="step-info">
-            <h4>Agregar Preguntas</h4>
-            <p>{{ questions().length }} pregunta{{ questions().length !== 1 ? 's' : '' }}</p>
+            <h4>Agregar Problemas</h4>
+            <p>{{ problems().length }} problema{{ problems().length !== 1 ? 's' : '' }}</p>
           </div>
         </div>
 
@@ -66,10 +66,17 @@
       <div class="quick-info">
         <h4>📊 Resumen</h4>
         <div class="info-item">
+          <span class="info-icon">📋</span>
+          <div>
+            <p class="info-label">Problemas</p>
+            <p class="info-value">{{ problems().length }}</p>
+          </div>
+        </div>
+        <div class="info-item">
           <span class="info-icon">📝</span>
           <div>
             <p class="info-label">Preguntas</p>
-            <p class="info-value">{{ questions().length }}</p>
+            <p class="info-value">{{ getTotalQuestions() }}</p>
           </div>
         </div>
         <div class="info-item">
@@ -154,86 +161,90 @@
         </div>
       }
 
-      <!-- PASO 2: Preguntas -->
+      <!-- PASO 2: Problemas -->
       @if (currentStep() === 2) {
         <div class="step-content fade-in">
           <div class="content-header-with-action">
             <div>
-              <h2 class="step-title">❓ Preguntas del Examen</h2>
-              <p class="step-description">Cada pregunta incluye: Descripción → Pregunta → Respuestas ABCD</p>
+              <h2 class="step-title">📋 Problemas del Examen</h2>
+              <p class="step-description">Cada problema incluye una descripción y múltiples preguntas con opciones ABCD</p>
             </div>
-            <button type="button" class="btn btn-add-question" (click)="openQuestionModal()">
+            <button type="button" class="btn btn-add-question" (click)="openProblemModal()">
               <span class="plus-icon">+</span>
-              Nueva Pregunta
+              Nuevo Problema
             </button>
           </div>
 
-          @if (questions().length === 0) {
+          @if (problems().length === 0) {
             <div class="empty-state-modern">
               <div class="empty-illustration">
                 <div class="empty-circle">
                   <span class="empty-icon">📝</span>
                 </div>
               </div>
-              <h3 class="empty-title">Comienza agregando preguntas</h3>
-              <p class="empty-description">Tu examen necesita al menos una pregunta para poder ser guardado</p>
-              <button type="button" class="btn btn-primary-large" (click)="openQuestionModal()">
+              <h3 class="empty-title">Comienza agregando problemas</h3>
+              <p class="empty-description">Tu examen necesita al menos un problema con preguntas para poder ser guardado</p>
+              <button type="button" class="btn btn-primary-large" (click)="openProblemModal()">
                 <span class="plus-icon">+</span>
-                Crear Primera Pregunta
+                Crear Primer Problema
               </button>
             </div>
           } @else {
             <div class="questions-container">
-              @for (question of questions(); track question.id; let i = $index) {
+              @for (problem of problems(); track problem.id; let i = $index) {
                 <div class="question-item">
                   <div class="question-left">
                     <div class="question-number-badge">{{ i + 1 }}</div>
                   </div>
 
                   <div class="question-main">
-                    <div class="question-meta">
-                      <span class="question-type-badge badge-multiple-choice">
-                        <span class="badge-icon">📝</span> Opción Múltiple
-                      </span>
-                      <span class="question-points-badge">{{ question.points }} punto{{ question.points !== 1 ? 's' : '' }}</span>
-                    </div>
-
-                    <!-- Descripción de la pregunta -->
+                    <!-- Descripción del problema -->
                     <div class="question-description-preview">
-                      <strong>📄 Descripción:</strong> {{ question.description }}
+                      <strong>📄 Descripción del Problema:</strong> {{ problem.description }}
                     </div>
 
-                    <!-- Pregunta -->
-                    <h4 class="question-text-preview">{{ question.question }}</h4>
+                    <!-- Preguntas del problema -->
+                    @for (question of problem.questions; track question.id; let j = $index) {
+                      <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px dashed #e9ecef;">
+                        <div class="question-meta">
+                          <span class="question-type-badge badge-multiple-choice">
+                            <span class="badge-icon">❓</span> Pregunta {{ j + 1 }}
+                          </span>
+                          <span class="question-points-badge">{{ question.points }} punto{{ question.points !== 1 ? 's' : '' }}</span>
+                        </div>
 
-                    <!-- Opciones -->
-                    <div class="options-preview">
-                      @for (option of question.options; track $index; let j = $index) {
-                        <div class="option-preview" [class.is-correct]="question.correctAnswer === j">
-                          <span class="option-letter">{{ getOptionLetter(j) }}</span>
-                          <span class="option-text">{{ option }}</span>
-                          @if (question.correctAnswer === j) {
-                            <span class="correct-indicator">✓</span>
+                        <h4 class="question-text-preview">{{ question.question }}</h4>
+
+                        <!-- Opciones -->
+                        <div class="options-preview">
+                          @for (option of question.options; track $index; let k = $index) {
+                            <div class="option-preview" [class.is-correct]="question.correctAnswer === k">
+                              <span class="option-letter">{{ getOptionLetter(k) }}</span>
+                              <span class="option-text">{{ option }}</span>
+                              @if (question.correctAnswer === k) {
+                                <span class="correct-indicator">✓</span>
+                              }
+                            </div>
                           }
                         </div>
-                      }
-                    </div>
+                      </div>
+                    }
                   </div>
 
                   <div class="question-actions-modern">
-                    <button type="button" class="icon-btn" (click)="moveQuestionUp(i)" [disabled]="i === 0" title="Mover arriba">
+                    <button type="button" class="icon-btn" (click)="moveProblemUp(i)" [disabled]="i === 0" title="Mover arriba">
                       <span>↑</span>
                     </button>
-                    <button type="button" class="icon-btn" (click)="moveQuestionDown(i)" [disabled]="i === questions().length - 1" title="Mover abajo">
+                    <button type="button" class="icon-btn" (click)="moveProblemDown(i)" [disabled]="i === problems().length - 1" title="Mover abajo">
                       <span>↓</span>
                     </button>
-                    <button type="button" class="icon-btn" (click)="editQuestion(question.id)" title="Editar">
+                    <button type="button" class="icon-btn" (click)="editProblem(problem.id)" title="Editar">
                       <span>✏️</span>
                     </button>
-                    <button type="button" class="icon-btn" (click)="duplicateQuestion(question.id)" title="Duplicar">
+                    <button type="button" class="icon-btn" (click)="duplicateProblem(problem.id)" title="Duplicar">
                       <span>📋</span>
                     </button>
-                    <button type="button" class="icon-btn danger" (click)="deleteQuestion(question.id)" title="Eliminar">
+                    <button type="button" class="icon-btn danger" (click)="deleteProblem(problem.id)" title="Eliminar">
                       <span>🗑️</span>
                     </button>
                   </div>
@@ -243,8 +254,13 @@
 
             <div class="summary-card">
               <div class="summary-stat">
-                <span class="summary-number">{{ questions().length }}</span>
-                <span class="summary-label">Pregunta{{ questions().length !== 1 ? 's' : '' }}</span>
+                <span class="summary-number">{{ problems().length }}</span>
+                <span class="summary-label">Problema{{ problems().length !== 1 ? 's' : '' }}</span>
+              </div>
+              <div class="summary-divider"></div>
+              <div class="summary-stat">
+                <span class="summary-number">{{ getTotalQuestions() }}</span>
+                <span class="summary-label">Preguntas Totales</span>
               </div>
               <div class="summary-divider"></div>
               <div class="summary-stat">
@@ -259,7 +275,7 @@
               <span class="arrow-icon">←</span>
               Anterior
             </button>
-            <button type="button" class="btn btn-primary-large" (click)="nextStep()" [disabled]="questions().length === 0">
+            <button type="button" class="btn btn-primary-large" (click)="nextStep()" [disabled]="problems().length === 0">
               Continuar
               <span class="arrow-icon">→</span>
             </button>
@@ -303,10 +319,20 @@
             <div class="review-stats-grid">
               <div class="stat-card-modern">
                 <div class="stat-icon-wrapper purple">
+                  <span class="stat-icon-large">📋</span>
+                </div>
+                <div class="stat-content">
+                  <p class="stat-number-large">{{ problems().length }}</p>
+                  <p class="stat-label-large">Problemas</p>
+                </div>
+              </div>
+
+              <div class="stat-card-modern">
+                <div class="stat-icon-wrapper blue">
                   <span class="stat-icon-large">📝</span>
                 </div>
                 <div class="stat-content">
-                  <p class="stat-number-large">{{ questions().length }}</p>
+                  <p class="stat-number-large">{{ getTotalQuestions() }}</p>
                   <p class="stat-label-large">Preguntas</p>
                 </div>
               </div>
@@ -324,17 +350,21 @@
 
             <div class="review-card-modern">
               <div class="review-card-header">
-                <h3>❓ Vista Previa de Preguntas</h3>
+                <h3>📋 Vista Previa de Problemas</h3>
               </div>
               <div class="review-questions-list">
-                @for (question of questions(); track question.id; let i = $index) {
+                @for (problem of problems(); track problem.id; let i = $index) {
                   <div class="review-question-item">
                     <div class="review-q-header">
-                      <span class="review-q-number">Pregunta {{ i + 1 }}</span>
-                      <span class="review-q-points">{{ question.points }} pts</span>
+                      <span class="review-q-number">Problema {{ i + 1 }}</span>
+                      <span class="review-q-points">{{ problem.questions.length }} pregunta{{ problem.questions.length !== 1 ? 's' : '' }}</span>
                     </div>
-                    <p class="review-q-description"><strong>Descripción:</strong> {{ question.description }}</p>
-                    <p class="review-q-text">{{ question.question }}</p>
+                    <p class="review-q-description"><strong>Descripción:</strong> {{ problem.description }}</p>
+                    @for (question of problem.questions; track question.id; let j = $index) {
+                      <p class="review-q-text" style="margin-top: 0.75rem; padding-left: 1rem; border-left: 3px solid #6a11cb;">
+                        <strong>{{ j + 1 }}.</strong> {{ question.question }} <span style="color: #6c757d; font-size: 0.85rem;">({{ question.points }} pts)</span>
+                      </p>
+                    }
                   </div>
                 }
               </div>
@@ -362,14 +392,129 @@
     </main>
   </div>
 
-  <!-- Modal de Pregunta -->
+  <!-- Modal de Problema -->
+  @if (showProblemModal()) {
+    <div class="modal-backdrop" (click)="showProblemModal.set(false)">
+      <div class="modal-modern" style="max-width: 900px;" (click)="$event.stopPropagation()">
+        <div class="modal-header-modern">
+          <div class="modal-title-section">
+            <h3>{{ editingProblemId() ? '✏️ Editar Problema' : '➕ Nuevo Problema' }}</h3>
+            <p>Descripción del problema → Agregar preguntas (ABCD)</p>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="showProblemModal.set(false)">
+            <span>✕</span>
+          </button>
+        </div>
+
+        <div class="modal-body-modern">
+          <!-- Descripción del problema -->
+          <div class="form-section-modal">
+            <label class="section-label">
+              <span>📄 Descripción del Problema</span>
+              <span class="required-star">*</span>
+            </label>
+            <p class="section-hint">Contexto o información necesaria para todas las preguntas de este problema</p>
+            <textarea
+              [value]="newProblem().description"
+              (input)="updateProblemDescription($any($event.target).value)"
+              placeholder="Ej: Lee el siguiente texto sobre el sistema solar y responde las siguientes preguntas..."
+              class="textarea-modal"
+              rows="4"
+            ></textarea>
+          </div>
+
+          <!-- Lista de preguntas del problema -->
+          <div class="form-section-modal">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <label class="section-label" style="margin-bottom: 0;">
+                <span>❓ Preguntas</span>
+                <span class="required-star">*</span>
+              </label>
+              <button type="button" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;" (click)="openQuestionModalInProblem()">
+                <span class="plus-icon">+</span>
+                Agregar Pregunta
+              </button>
+            </div>
+
+            @if (newProblem().questions.length === 0) {
+              <div style="text-align: center; padding: 2rem; background: #f8f9fa; border-radius: 12px; border: 2px dashed #e9ecef;">
+                <p style="color: #6c757d; margin-bottom: 1rem;">No hay preguntas agregadas aún</p>
+                <button type="button" class="btn btn-primary" (click)="openQuestionModalInProblem()">
+                  <span class="plus-icon">+</span>
+                  Agregar Primera Pregunta
+                </button>
+              </div>
+            } @else {
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                @for (question of newProblem().questions; track question.id; let j = $index) {
+                  <div style="background: #f8f9fa; border-radius: 12px; padding: 1rem; border: 2px solid #e9ecef;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+                      <div style="flex: 1;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                          <span style="background: linear-gradient(135deg, #6a11cb, #2575fc); color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                            Pregunta {{ j + 1 }}
+                          </span>
+                          <span style="background: rgba(250, 112, 154, 0.1); color: #fa709a; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                            {{ question.points }} pts
+                          </span>
+                        </div>
+                        <p style="font-weight: 600; color: #343a40; margin: 0;">{{ question.question }}</p>
+                      </div>
+                      <div style="display: flex; gap: 0.25rem;">
+                        <button type="button" class="icon-btn" style="width: 32px; height: 32px; font-size: 0.9rem;" (click)="moveQuestionUpInProblem(j)" [disabled]="j === 0">
+                          <span>↑</span>
+                        </button>
+                        <button type="button" class="icon-btn" style="width: 32px; height: 32px; font-size: 0.9rem;" (click)="moveQuestionDownInProblem(j)" [disabled]="j === newProblem().questions.length - 1">
+                          <span>↓</span>
+                        </button>
+                        <button type="button" class="icon-btn" style="width: 32px; height: 32px; font-size: 0.9rem;" (click)="editQuestionInProblem(question.id)">
+                          <span>✏️</span>
+                        </button>
+                        <button type="button" class="icon-btn danger" style="width: 32px; height: 32px; font-size: 0.9rem;" (click)="deleteQuestionFromProblem(question.id)">
+                          <span>🗑️</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem;">
+                      @for (option of question.options; track $index; let k = $index) {
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: white; border-radius: 8px;" [style.border]="question.correctAnswer === k ? '2px solid #11998e' : '1px solid #e9ecef'">
+                          <span style="background: #6a11cb; color: white; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; flex-shrink: 0;">
+                            {{ getOptionLetter(k) }}
+                          </span>
+                          <span style="flex: 1; font-size: 0.9rem; color: #343a40;">{{ option }}</span>
+                          @if (question.correctAnswer === k) {
+                            <span style="color: #11998e; font-weight: 700;">✓</span>
+                          }
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="modal-footer-modern">
+          <button type="button" class="btn btn-secondary" (click)="showProblemModal.set(false)">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-primary" (click)="editingProblemId() ? updateProblem() : addProblem()">
+            {{ editingProblemId() ? 'Actualizar' : 'Agregar' }} Problema
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de Pregunta (dentro del problema) -->
   @if (showQuestionModal()) {
-    <div class="modal-backdrop" (click)="showQuestionModal.set(false)">
+    <div class="modal-backdrop" style="z-index: 1100;">
       <div class="modal-modern" (click)="$event.stopPropagation()">
         <div class="modal-header-modern">
           <div class="modal-title-section">
             <h3>{{ editingQuestionId() ? '✏️ Editar Pregunta' : '➕ Nueva Pregunta' }}</h3>
-            <p>Descripción → Pregunta → Respuestas ABCD</p>
+            <p>Pregunta → Respuestas ABCD → Puntos</p>
           </div>
           <button type="button" class="modal-close-btn" (click)="showQuestionModal.set(false)">
             <span>✕</span>
@@ -377,29 +522,12 @@
         </div>
 
         <div class="modal-body-modern">
-          <!-- 1. Descripción de la pregunta -->
+          <!-- Pregunta -->
           <div class="form-section-modal">
             <label class="section-label">
-              <span>1️⃣ Descripción de la Pregunta</span>
+              <span>❓ Pregunta</span>
               <span class="required-star">*</span>
             </label>
-            <p class="section-hint">Contexto o información necesaria para responder la pregunta</p>
-            <textarea
-              [value]="newQuestion().description"
-              (input)="updateQuestionDescription($any($event.target).value)"
-              placeholder="Ej: Lee el siguiente texto sobre el sistema solar y responde..."
-              class="textarea-modal"
-              rows="4"
-            ></textarea>
-          </div>
-
-          <!-- 2. Pregunta -->
-          <div class="form-section-modal">
-            <label class="section-label">
-              <span>2️⃣ Pregunta</span>
-              <span class="required-star">*</span>
-            </label>
-            <p class="section-hint">La pregunta específica que el estudiante debe responder</p>
             <textarea
               [value]="newQuestion().question"
               (input)="updateQuestionText($any($event.target).value)"
@@ -409,10 +537,10 @@
             ></textarea>
           </div>
 
-          <!-- 3. Opciones A, B, C, D -->
+          <!-- Opciones A, B, C, D -->
           <div class="form-section-modal">
             <label class="section-label">
-              <span>3️⃣ Respuestas (A, B, C, D)</span>
+              <span>📝 Respuestas (A, B, C, D)</span>
               <span class="required-star">*</span>
             </label>
             <p class="section-hint">Marca la respuesta correcta</p>
@@ -444,7 +572,7 @@
 
           <!-- Puntos -->
           <div class="form-section-modal">
-            <label class="section-label">Puntos</label>
+            <label class="section-label">⭐ Puntos</label>
             <div class="points-selector">
               @for (point of [1, 2, 3, 5, 10]; track point) {
                 <button
@@ -473,7 +601,7 @@
           <button type="button" class="btn btn-secondary" (click)="showQuestionModal.set(false)">
             Cancelar
           </button>
-          <button type="button" class="btn btn-primary" (click)="editingQuestionId() ? updateQuestion() : addQuestion()">
+          <button type="button" class="btn btn-primary" (click)="editingQuestionId() ? updateQuestionInProblem() : addQuestionToProblem()">
             {{ editingQuestionId() ? 'Actualizar' : 'Agregar' }} Pregunta
           </button>
         </div>
