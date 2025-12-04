@@ -29,7 +29,7 @@
           </div>
           <div class="step-info">
             <h4>Información Básica</h4>
-            <p>Título, materia y descripción</p>
+            <p>Título y materia</p>
           </div>
         </div>
 
@@ -140,24 +140,6 @@
                 </label>
               </div>
             </div>
-
-            <div class="input-group">
-              <label class="input-label">
-                <span class="label-text">Descripción del Examen</span>
-                <span class="label-required">*</span>
-              </label>
-              <textarea
-                [(ngModel)]="examDescription"
-                placeholder="Describe los temas que cubre este examen, objetivos de aprendizaje y cualquier información relevante para los estudiantes..."
-                class="textarea-field"
-                rows="6"
-                maxlength="500"
-              ></textarea>
-              <div class="input-footer">
-                <span class="input-hint">Explica qué evaluará este examen</span>
-                <span class="char-counter">{{ examDescription().length }}/500</span>
-              </div>
-            </div>
           </div>
 
           <div class="actions-bar">
@@ -178,7 +160,7 @@
           <div class="content-header-with-action">
             <div>
               <h2 class="step-title">❓ Preguntas del Examen</h2>
-              <p class="step-description">Crea preguntas de opción múltiple (A, B, C, D)</p>
+              <p class="step-description">Cada pregunta incluye: Descripción → Pregunta → Respuestas ABCD</p>
             </div>
             <button type="button" class="btn btn-add-question" (click)="openQuestionModal()">
               <span class="plus-icon">+</span>
@@ -216,8 +198,15 @@
                       <span class="question-points-badge">{{ question.points }} punto{{ question.points !== 1 ? 's' : '' }}</span>
                     </div>
 
+                    <!-- Descripción de la pregunta -->
+                    <div class="question-description-preview">
+                      <strong>📄 Descripción:</strong> {{ question.description }}
+                    </div>
+
+                    <!-- Pregunta -->
                     <h4 class="question-text-preview">{{ question.question }}</h4>
 
+                    <!-- Opciones -->
                     <div class="options-preview">
                       @for (option of question.options; track $index; let j = $index) {
                         <div class="option-preview" [class.is-correct]="question.correctAnswer === j">
@@ -308,10 +297,6 @@
                     }
                   </span>
                 </div>
-                <div class="review-row full">
-                  <span class="review-label">Descripción</span>
-                  <p class="review-description">{{ examDescription() }}</p>
-                </div>
               </div>
             </div>
 
@@ -348,6 +333,7 @@
                       <span class="review-q-number">Pregunta {{ i + 1 }}</span>
                       <span class="review-q-points">{{ question.points }} pts</span>
                     </div>
+                    <p class="review-q-description"><strong>Descripción:</strong> {{ question.description }}</p>
                     <p class="review-q-text">{{ question.question }}</p>
                   </div>
                 }
@@ -383,7 +369,7 @@
         <div class="modal-header-modern">
           <div class="modal-title-section">
             <h3>{{ editingQuestionId() ? '✏️ Editar Pregunta' : '➕ Nueva Pregunta' }}</h3>
-            <p>{{ editingQuestionId() ? 'Modifica la pregunta y sus opciones' : 'Crea una pregunta de opción múltiple (A, B, C, D)' }}</p>
+            <p>Descripción → Pregunta → Respuestas ABCD</p>
           </div>
           <button type="button" class="modal-close-btn" (click)="showQuestionModal.set(false)">
             <span>✕</span>
@@ -391,21 +377,44 @@
         </div>
 
         <div class="modal-body-modern">
-          <!-- Pregunta -->
+          <!-- 1. Descripción de la pregunta -->
           <div class="form-section-modal">
-            <label class="section-label">Pregunta <span class="required-star">*</span></label>
+            <label class="section-label">
+              <span>1️⃣ Descripción de la Pregunta</span>
+              <span class="required-star">*</span>
+            </label>
+            <p class="section-hint">Contexto o información necesaria para responder la pregunta</p>
             <textarea
-              [value]="newQuestion().question"
-              (input)="updateQuestionText($any($event.target).value)"
-              placeholder="Escribe aquí la pregunta que deseas hacer..."
+              [value]="newQuestion().description"
+              (input)="updateQuestionDescription($any($event.target).value)"
+              placeholder="Ej: Lee el siguiente texto sobre el sistema solar y responde..."
               class="textarea-modal"
               rows="4"
             ></textarea>
           </div>
 
-          <!-- Opciones A, B, C, D -->
+          <!-- 2. Pregunta -->
           <div class="form-section-modal">
-            <label class="section-label">Opciones de Respuesta (A, B, C, D)</label>
+            <label class="section-label">
+              <span>2️⃣ Pregunta</span>
+              <span class="required-star">*</span>
+            </label>
+            <p class="section-hint">La pregunta específica que el estudiante debe responder</p>
+            <textarea
+              [value]="newQuestion().question"
+              (input)="updateQuestionText($any($event.target).value)"
+              placeholder="Ej: ¿Cuál es el planeta más cercano al Sol?"
+              class="textarea-modal"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <!-- 3. Opciones A, B, C, D -->
+          <div class="form-section-modal">
+            <label class="section-label">
+              <span>3️⃣ Respuestas (A, B, C, D)</span>
+              <span class="required-star">*</span>
+            </label>
             <p class="section-hint">Marca la respuesta correcta</p>
             
             <div class="options-list-modal">

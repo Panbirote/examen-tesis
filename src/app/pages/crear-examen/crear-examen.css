@@ -1750,4 +1750,43 @@
     max-height: none;
     overflow: visible;
   }
+
+  /* Descripción de la pregunta en preview */
+.question-description-preview {
+  padding: 1rem;
+  background: rgba(106, 17, 203, 0.05);
+  border-left: 4px solid #6a11cb;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #495057;
+  line-height: 1.6;
+}
+
+.question-description-preview strong {
+  color: #6a11cb;
+  font-weight: 600;
+}
+
+/* Estilos para la revisión */
+.review-q-description {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.review-q-description strong {
+  color: #6a11cb;
+}
+
+/* Numeración de pasos en el modal */
+.section-label span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 }
