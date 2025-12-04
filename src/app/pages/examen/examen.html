@@ -53,7 +53,7 @@
                 <div class="info-icon">📝</div>
                 <div class="info-content">
                   <span class="info-label">Preguntas</span>
-                  <span class="info-value">{{ examData()?.questions.length }}</span>
+                  <span class="info-value">{{ (examData()?.questions || []).length }}</span>
                 </div>
               </div>
 
@@ -118,12 +118,12 @@
             <div class="progress-stats">
               <div class="stat-item">
                 <span class="stat-label">Respondidas</span>
-                <span class="stat-value">{{ getAnsweredCount() }}/{{ examData()?.questions.length }}</span>
+                <span class="stat-value">{{ getAnsweredCount() }}/{{ (examData()?.questions || []).length }}</span>
               </div>
               <div class="progress-bar-container">
                 <div 
                   class="progress-bar-fill" 
-                  [style.width.%]="(getAnsweredCount() / (examData()?.questions.length || 1)) * 100"
+                  [style.width.%]="(getAnsweredCount() / ((examData()?.questions || []).length || 1)) * 100"
                 ></div>
               </div>
             </div>
@@ -131,7 +131,7 @@
             <div class="questions-navigator">
               <h4>Navegación Rápida</h4>
               <div class="questions-grid">
-                @for (question of examData()?.questions; track question.id; let i = $index) {
+                @for (question of examData()?.questions || []; track question.id; let i = $index) {
                   <button 
                     class="question-nav-btn"
                     [class.active]="currentQuestionIndex() === i"
@@ -167,7 +167,7 @@
             <div class="question-card">
               <div class="question-header">
                 <div class="question-number">
-                  Pregunta {{ currentQuestionIndex() + 1 }} de {{ examData()?.questions.length }}
+                  Pregunta {{ currentQuestionIndex() + 1 }} de {{ (examData()?.questions || []).length }}
                 </div>
                 <div class="question-points">
                   {{ question.points }} punto{{ question.points !== 1 ? 's' : '' }}
@@ -209,7 +209,7 @@
                   <span>←</span> Anterior
                 </button>
 
-                @if (currentQuestionIndex() < (examData()?.questions.length || 0) - 1) {
+                @if (currentQuestionIndex() < ((examData()?.questions || []).length - 1)) {
                   <button class="btn-nav btn-next" (click)="nextQuestion()">
                     Siguiente <span>→</span>
                   </button>

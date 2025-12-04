@@ -43,8 +43,10 @@ export class Login {
             email: this.email(),
             type: 'student'
           }));
+          const rutainicio = resp.body?.tipousuario === 1 ? 'profesor-home' : 'home';  
 
-          this.router.navigate(['/home']);
+          this.router.navigate([`/${rutainicio}`]);
+
         } else {
           this.errorMessage.set(resp.body || 'Error al iniciar sesión');
         }
