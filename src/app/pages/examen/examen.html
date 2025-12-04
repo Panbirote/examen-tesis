@@ -1,0 +1,244 @@
+<div class="examen-wrapper">
+  <!-- Header -->
+  <header class="exam-header">
+    <div class="header-content">
+      <div class="logo-section">
+        <div class="logo-icon">P</div>
+        <div class="logo-text">
+          <h1 class="logo-title">PISA</h1>
+          <p class="logo-subtitle">Examen en Progreso</p>
+        </div>
+      </div>
+      
+      @if (examStarted() && !examFinished()) {
+        <div class="timer-badge">
+          <span class="timer-icon">⏱️</span>
+          <span class="timer-text">{{ timerDisplay() }}</span>
+        </div>
+      }
+      
+      <button class="btn-exit" (click)="exitExam()">
+        <span>✕</span> Salir
+      </button>
+    </div>
+  </header>
+
+  <div class="exam-container">
+    <!-- Descripción Inicial -->
+    @if (showDescription() && !examStarted()) {
+      <div class="description-view">
+        <div class="description-card">
+          <div class="description-header">
+            <div class="subject-badge">
+              @if (examData()?.subject === 'Matemáticas') {
+                <span class="subject-icon">📊</span>
+              } @else if (examData()?.subject === 'Lectura') {
+                <span class="subject-icon">📚</span>
+              } @else {
+                <span class="subject-icon">🔬</span>
+              }
+              <span>{{ examData()?.subject }}</span>
+            </div>
+            <h1 class="exam-title">{{ examData()?.title }}</h1>
+          </div>
+
+          <div class="description-body">
+            <div class="description-text">
+              <h2>📋 Instrucciones del Examen</h2>
+              <p>{{ examData()?.description }}</p>
+            </div>
+
+            <div class="exam-info-grid">
+              <div class="info-card">
+                <div class="info-icon">📝</div>
+                <div class="info-content">
+                  <span class="info-label">Preguntas</span>
+                  <span class="info-value">{{ examData()?.questions.length }}</span>
+                </div>
+              </div>
+
+              <div class="info-card">
+                <div class="info-icon">⭐</div>
+                <div class="info-content">
+                  <span class="info-label">Puntos Totales</span>
+                  <span class="info-value">{{ examData()?.totalPoints }}</span>
+                </div>
+              </div>
+
+              @if (examData()?.timeLimit) {
+                <div class="info-card">
+                  <div class="info-icon">⏱️</div>
+                  <div class="info-content">
+                    <span class="info-label">Tiempo Límite</span>
+                    <span class="info-value">{{ (examData()?.timeLimit || 0) / 60 }} min</span>
+                  </div>
+                </div>
+              }
+
+              <div class="info-card">
+                <div class="info-icon">✅</div>
+                <div class="info-content">
+                  <span class="info-label">Tipo</span>
+                  <span class="info-value">Opción Múltiple</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="important-notes">
+              <h3>⚠️ Notas Importantes</h3>
+              <ul>
+                <li>Lee cuidadosamente cada pregunta antes de responder</li>
+                <li>Puedes navegar entre preguntas usando los botones Anterior y Siguiente</li>
+                <li>Puedes cambiar tus respuestas en cualquier momento antes de enviar</li>
+                <li>Asegúrate de responder todas las preguntas antes de finalizar</li>
+                @if (examData()?.timeLimit) {
+                  <li>El examen se enviará automáticamente cuando el tiempo termine</li>
+                }
+              </ul>
+            </div>
+          </div>
+
+          <div class="description-footer">
+            <button class="btn-start" (click)="startExam()">
+              <span>🚀</span> Comenzar Examen
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Vista del Examen -->
+    @if (examStarted() && !examFinished() && examData()) {
+      <div class="exam-view">
+        <!-- Sidebar de Progreso -->
+        <aside class="progress-sidebar">
+          <div class="progress-card">
+            <h3 class="progress-title">Progreso del Examen</h3>
+            
+            <div class="progress-stats">
+              <div class="stat-item">
+                <span class="stat-label">Respondidas</span>
+                <span class="stat-value">{{ getAnsweredCount() }}/{{ examData()?.questions.length }}</span>
+              </div>
+              <div class="progress-bar-container">
+                <div 
+                  class="progress-bar-fill" 
+                  [style.width.%]="(getAnsweredCount() / (examData()?.questions.length || 1)) * 100"
+                ></div>
+              </div>
+            </div>
+
+            <div class="questions-navigator">
+              <h4>Navegación Rápida</h4>
+              <div class="questions-grid">
+                @for (question of examData()?.questions; track question.id; let i = $index) {
+                  <button 
+                    class="question-nav-btn"
+                    [class.active]="currentQuestionIndex() === i"
+                    [class.answered]="isQuestionAnswered(i)"
+                    (click)="goToQuestion(i)"
+                  >
+                    {{ i + 1 }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="legend">
+              <div class="legend-item">
+                <span class="legend-dot active"></span>
+                <span>Actual</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot answered"></span>
+                <span>Respondida</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot"></span>
+                <span>Pendiente</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Área de Pregunta -->
+        <main class="question-area">
+          @if (getCurrentQuestion(); as question) {
+            <div class="question-card">
+              <div class="question-header">
+                <div class="question-number">
+                  Pregunta {{ currentQuestionIndex() + 1 }} de {{ examData()?.questions.length }}
+                </div>
+                <div class="question-points">
+                  {{ question.points }} punto{{ question.points !== 1 ? 's' : '' }}
+                </div>
+              </div>
+
+              <div class="question-body">
+                <h2 class="question-text">{{ question.question }}</h2>
+
+                <div class="options-container">
+                  @for (option of question.options; track $index; let i = $index) {
+                    <label 
+                      class="option-label"
+                      [class.selected]="getSelectedOption(question.id) === i"
+                    >
+                      <input 
+                        type="radio" 
+                        [name]="'question-' + question.id"
+                        [value]="i"
+                        [checked]="getSelectedOption(question.id) === i"
+                        (change)="selectOption(question.id, i)"
+                      />
+                      <div class="option-content">
+                        <div class="option-letter">{{ getOptionLetter(i) }}</div>
+                        <div class="option-text">{{ option }}</div>
+                        <div class="option-check">✓</div>
+                      </div>
+                    </label>
+                  }
+                </div>
+              </div>
+
+              <div class="question-footer">
+                <button 
+                  class="btn-nav btn-previous" 
+                  (click)="previousQuestion()"
+                  [disabled]="currentQuestionIndex() === 0"
+                >
+                  <span>←</span> Anterior
+                </button>
+
+                @if (currentQuestionIndex() < (examData()?.questions.length || 0) - 1) {
+                  <button class="btn-nav btn-next" (click)="nextQuestion()">
+                    Siguiente <span>→</span>
+                  </button>
+                } @else {
+                  <button 
+                    class="btn-submit" 
+                    (click)="submitExam()"
+                    [class.ready]="canSubmit()"
+                  >
+                    <span>📤</span> Finalizar Examen
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </main>
+      </div>
+    }
+
+    <!-- Vista de Finalización -->
+    @if (examFinished()) {
+      <div class="finished-view">
+        <div class="finished-card">
+          <div class="success-icon">✅</div>
+          <h1>¡Examen Enviado Exitosamente!</h1>
+          <p>Tus respuestas han sido guardadas correctamente.</p>
+          <p class="redirect-text">Redirigiendo al inicio...</p>
+        </div>
+      </div>
+    }
+  </div>
+</div>

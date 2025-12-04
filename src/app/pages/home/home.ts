@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
@@ -8,7 +8,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home implements OnInit {
+export class Home implements OnInit, OnDestroy {
   userEmail = signal('');
   timerDisplay = signal('02:00:00');
   private timerInterval: any;
@@ -51,6 +51,13 @@ export class Home implements OnInit {
 
       timer--;
     }, 1000);
+  }
+
+  // Función para iniciar un examen
+  startExam(subject: string) {
+    // En producción, aquí se verificaría qué exámenes están disponibles para el estudiante
+    // Por ahora, redirigimos a un examen de ejemplo
+    this.router.navigate(['/examen/1']);
   }
 
   logout() {
