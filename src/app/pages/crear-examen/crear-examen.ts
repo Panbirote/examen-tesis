@@ -7,6 +7,7 @@ interface Question {
   id: string;
   type: 'multiple-choice';
   question: string;
+  description: string;
   options: string[];
   correctAnswer: number;
   points: number;
@@ -22,7 +23,6 @@ export class CrearExamen implements OnInit {
   // Datos del examen
   examTitle = signal('');
   examSubject = signal('');
-  examDescription = signal('');
   
   // Preguntas
   questions = signal<Question[]>([]);
@@ -37,6 +37,7 @@ export class CrearExamen implements OnInit {
     id: '',
     type: 'multiple-choice',
     question: '',
+    description: '',
     options: ['', '', '', ''],
     correctAnswer: 0,
     points: 1
@@ -77,10 +78,6 @@ export class CrearExamen implements OnInit {
       alert('Por favor selecciona una materia');
       return false;
     }
-    if (!this.examDescription()) {
-      alert('Por favor ingresa una descripción');
-      return false;
-    }
     return true;
   }
 
@@ -96,6 +93,7 @@ export class CrearExamen implements OnInit {
       id: '',
       type: 'multiple-choice',
       question: '',
+      description: '',
       options: ['', '', '', ''],
       correctAnswer: 0,
       points: 1
@@ -104,6 +102,11 @@ export class CrearExamen implements OnInit {
 
   addQuestion() {
     const question = this.newQuestion();
+    
+    if (!question.description.trim()) {
+      alert('Por favor ingresa la descripción de la pregunta');
+      return;
+    }
     
     if (!question.question.trim()) {
       alert('Por favor ingresa el texto de la pregunta');
@@ -183,6 +186,10 @@ export class CrearExamen implements OnInit {
   }
 
   // Utilidades
+  updateQuestionDescription(text: string) {
+    this.newQuestion.set({ ...this.newQuestion(), description: text });
+  }
+
   updateQuestionText(text: string) {
     this.newQuestion.set({ ...this.newQuestion(), question: text });
   }
@@ -222,7 +229,6 @@ export class CrearExamen implements OnInit {
     const exam = {
       title: this.examTitle(),
       subject: this.examSubject(),
-      description: this.examDescription(),
       questions: this.questions(),
       status,
       createdDate: new Date().toISOString(),
