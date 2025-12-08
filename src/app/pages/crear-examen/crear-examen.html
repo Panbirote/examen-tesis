@@ -131,11 +131,11 @@
                     <span class="subject-name">Matemáticas</span>
                   </div>
                 </label>
-                <label class="subject-card" [class.selected]="examSubject() === 'Lectura'">
-                  <input type="radio" name="subject" value="Lectura" [(ngModel)]="examSubject" />
+                <label class="subject-card" [class.selected]="examSubject() === 'Español'">
+                  <input type="radio" name="subject" value="Español" [(ngModel)]="examSubject" />
                   <div class="subject-content">
                     <span class="subject-icon">📚</span>
-                    <span class="subject-name">Lectura</span>
+                    <span class="subject-name">Español</span>
                   </div>
                 </label>
                 <label class="subject-card" [class.selected]="examSubject() === 'Ciencias'">
@@ -306,8 +306,8 @@
                   <span class="review-value">
                     @if (examSubject() === 'Matemáticas') {
                       <span>📊 Matemáticas</span>
-                    } @else if (examSubject() === 'Lectura') {
-                      <span>📚 Lectura</span>
+                    } @else if (examSubject() === 'Español') {
+                      <span>📚 Español</span>
                     } @else {
                       <span>🔬 Ciencias</span>
                     }

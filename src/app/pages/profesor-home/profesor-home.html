@@ -11,7 +11,6 @@
     <a href="#inicio" class="nav-link active">Inicio</a>
     <a href="#examenes" class="nav-link">Mis Exámenes</a>
     <a (click)="createNewExam()" class="nav-link" style="cursor: pointer;">Crear Examen</a>
-    <a href="#estudiantes" class="nav-link">Estudiantes</a>
     <a href="#resultados" class="nav-link">Resultados</a>
     <a href="#reportes" class="nav-link">Reportes</a>
     <button class="logout-btn" (click)="logout()">
@@ -24,46 +23,7 @@
     <div class="welcome-section" id="inicio">
       <h1>Bienvenido, {{ profesorName() }}</h1>
       <p class="user-info">👨‍🏫 Panel de Profesor: <strong>{{ profesorEmail() }}</strong></p>
-      <p>Gestiona tus exámenes, monitorea el progreso de tus estudiantes y crea evaluaciones personalizadas para el programa PISA.</p>
-    </div>
-    
-    <!-- Estadísticas Generales -->
-    <div class="stats-grid">
-      <div class="stat-card stat-primary">
-        <div class="stat-icon">📚</div>
-        <div class="stat-content">
-          <h3>{{ stats().totalExams }}</h3>
-          <p>Exámenes Totales</p>
-          <span class="stat-trend">+2 este mes</span>
-        </div>
-      </div>
-      
-      <div class="stat-card stat-success">
-        <div class="stat-icon">✅</div>
-        <div class="stat-content">
-          <h3>{{ stats().activeExams }}</h3>
-          <p>Exámenes Activos</p>
-          <span class="stat-trend">En progreso</span>
-        </div>
-      </div>
-      
-      <div class="stat-card stat-info">
-        <div class="stat-icon">👥</div>
-        <div class="stat-content">
-          <h3>{{ stats().totalStudents }}</h3>
-          <p>Estudiantes Totales</p>
-          <span class="stat-trend">3 grupos</span>
-        </div>
-      </div>
-      
-      <div class="stat-card stat-warning">
-        <div class="stat-icon">📊</div>
-        <div class="stat-content">
-          <h3>{{ stats().completedExams }}</h3>
-          <p>Exámenes Completados</p>
-          <span class="stat-trend">85% promedio</span>
-        </div>
-      </div>
+      <p>Gestiona tus exámenes, monitorea el progreso y crea evaluaciones personalizadas para el programa PISA.</p>
     </div>
     
     <!-- Crear Nuevo Examen - Destacado -->
@@ -92,7 +52,7 @@
             <span>📋</span> Todos ({{ exams().length }})
           </button>
           <button class="filter-btn">
-            <span>✅</span> Activos ({{ stats().activeExams }})
+            <span>✅</span> Activos
           </button>
           <button class="filter-btn">
             <span>📝</span> Borradores
@@ -157,32 +117,8 @@
             </div>
             
             <div class="exam-actions">
-              @if (exam.status === 'draft') {
-                <button class="action-btn btn-edit" (click)="editExam(exam.id)" title="Editar examen">
-                  <span>✏️</span> Editar
-                </button>
-                <button class="action-btn btn-publish" (click)="publishExam(exam.id)" title="Publicar examen">
-                  <span>🚀</span> Publicar
-                </button>
-              }
-              @if (exam.status === 'active') {
-                <button class="action-btn btn-results" (click)="viewResults(exam.id)" title="Ver resultados">
-                  <span>📊</span> Resultados
-                </button>
-                <button class="action-btn btn-monitor" (click)="monitorExam(exam.id)" title="Monitorear en vivo">
-                  <span>👁️</span> Monitorear
-                </button>
-              }
-              @if (exam.status === 'completed') {
-                <button class="action-btn btn-results" (click)="viewResults(exam.id)" title="Ver resultados">
-                  <span>📊</span> Resultados
-                </button>
-                <button class="action-btn btn-download" (click)="downloadReport(exam.id)" title="Descargar reporte">
-                  <span>📥</span> Descargar
-                </button>
-              }
-              <button class="action-btn btn-more" (click)="showExamMenu(exam.id)" title="Más opciones">
-                <span>⋮</span>
+              <button class="action-btn btn-results" (click)="viewResults(exam.id)" title="Ver resultados">
+                <span>📊</span> Ver Resultados
               </button>
             </div>
           </div>
@@ -196,75 +132,6 @@
             </button>
           </div>
         }
-      </div>
-    </div>
-    
-    <!-- Sección de Estudiantes -->
-    <div class="students-section" id="estudiantes">
-      <div class="section-header-flex">
-        <div class="section-title-group">
-          <h2>Gestión de Estudiantes</h2>
-          <span class="subtitle">Administra tu lista de estudiantes y grupos</span>
-        </div>
-        <button class="btn-action" (click)="addStudent()">
-          <span>➕</span> Agregar Estudiante
-        </button>
-      </div>
-      
-      <div class="students-grid">
-        <div class="student-group-card">
-          <div class="group-header">
-            <h3>Grupo A - Matemáticas</h3>
-            <span class="group-count">28 estudiantes</span>
-          </div>
-          <div class="group-stats">
-            <div class="group-stat">
-              <span class="stat-label">Promedio</span>
-              <span class="stat-value success">87%</span>
-            </div>
-            <div class="group-stat">
-              <span class="stat-label">Participación</span>
-              <span class="stat-value info">95%</span>
-            </div>
-          </div>
-          <button class="btn-link" (click)="viewGroup('A')">Ver detalles →</button>
-        </div>
-        
-        <div class="student-group-card">
-          <div class="group-header">
-            <h3>Grupo B - Lectura</h3>
-            <span class="group-count">25 estudiantes</span>
-          </div>
-          <div class="group-stats">
-            <div class="group-stat">
-              <span class="stat-label">Promedio</span>
-              <span class="stat-value success">82%</span>
-            </div>
-            <div class="group-stat">
-              <span class="stat-label">Participación</span>
-              <span class="stat-value warning">78%</span>
-            </div>
-          </div>
-          <button class="btn-link" (click)="viewGroup('B')">Ver detalles →</button>
-        </div>
-        
-        <div class="student-group-card">
-          <div class="group-header">
-            <h3>Grupo C - Ciencias</h3>
-            <span class="group-count">32 estudiantes</span>
-          </div>
-          <div class="group-stats">
-            <div class="group-stat">
-              <span class="stat-label">Promedio</span>
-              <span class="stat-value success">90%</span>
-            </div>
-            <div class="group-stat">
-              <span class="stat-label">Participación</span>
-              <span class="stat-value success">92%</span>
-            </div>
-          </div>
-          <button class="btn-link" (click)="viewGroup('C')">Ver detalles →</button>
-        </div>
       </div>
     </div>
     
@@ -345,16 +212,6 @@
           <a href="#" class="quick-link">Ver dashboard →</a>
         </div>
         
-        <div class="quick-card" (click)="manageStudents()">
-          <i>👨‍🎓</i>
-          <h3>Gestión de Estudiantes</h3>
-          <p>Importa, exporta y administra tu lista completa de estudiantes</p>
-          <div class="quick-stats">
-            <span class="stat-badge">{{ stats().totalStudents }} activos</span>
-          </div>
-          <a href="#" class="quick-link">Gestionar →</a>
-        </div>
-        
         <div class="quick-card" (click)="exportReports()">
           <i>📄</i>
           <h3>Generar Reportes</h3>
@@ -364,8 +221,18 @@
           </div>
           <a href="#" class="quick-link">Generar →</a>
         </div>
-        
-        
+
+        <div class="quick-card" (click)="viewTemplates()">
+          <i>📑</i>
+          <h3>Plantillas de Examen</h3>
+          <p>Usa plantillas prediseñadas basadas en estándares PISA/OECD</p>
+          <div class="quick-stats">
+            <span class="stat-badge">15+ plantillas</span>
+          </div>
+          <a href="#" class="quick-link">Ver plantillas →</a>
+        </div>
+      </div>
+    </div>
     
     <!-- Notificaciones y Actividad Reciente -->
     <div class="activity-section">
@@ -384,7 +251,7 @@
           <div class="activity-icon info">👥</div>
           <div class="activity-content">
             <h4>Nuevos estudiantes</h4>
-            <p>5 estudiantes se unieron al Grupo B</p>
+            <p>5 estudiantes se unieron al sistema</p>
             <span class="activity-time">Hace 5 horas</span>
           </div>
         </div>
