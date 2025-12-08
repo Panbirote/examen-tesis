@@ -9,68 +9,100 @@
   
   <nav>
     <a href="#" class="nav-link">Inicio</a>
-    <a href="#" class="nav-link">Instrucciones</a>
-    <a href="#" class="nav-link">Matemáticas</a>
-    <a href="#" class="nav-link">Lectura</a>
-    <a href="#" class="nav-link">Ciencias</a>
+    <a href="#" class="nav-link">Mis Exámenes</a>
+    <a href="#" class="nav-link">Resultados</a>
     <a href="#" class="nav-link">Ayuda</a>
     <button class="logout-btn" (click)="logout()">Cerrar Sesión</button>
   </nav>
   
   <div class="container">
     <div class="welcome-section">
-      <h1>Bienvenido al Examen PISA</h1>
+      <h1>Bienvenido, {{ userName() }}</h1>
       <p class="user-info">👤 Sesión iniciada como: <strong>{{ userEmail() }}</strong></p>
-      <p>Esta evaluación internacional mide tus habilidades en matemáticas, lectura y ciencias. Lee cuidadosamente cada pregunta y responde lo mejor que puedas. Los resultados nos ayudarán a entender y mejorar los sistemas educativos globalmente. ¡Mucha suerte!</p>
+      <p>Ingresa el código de examen que te proporcionó tu profesor para comenzar.</p>
     </div>
     
-    <div class="timer-container">
-      Tiempo restante: <span class="timer">{{ timerDisplay() }}</span>
+    <!-- Botón para agregar código de examen -->
+    <div class="add-exam-section">
+      <button class="btn-add-exam" (click)="openCodeModal()">
+        <span class="icon">➕</span>
+        <span>Agregar Código de Examen</span>
+      </button>
     </div>
-    
-    <div class="exam-sections">
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon">📊</div>
-          <h2>Matemáticas</h2>
-        </div>
-        <div class="section-content">
-          <p>Evalúa tu capacidad para formular, emplear e interpretar las matemáticas en diversos contextos y situaciones del mundo real.</p>
-          <div class="section-stats">
-            <span>📝 30 preguntas</span> • <span>⏱️ 60 minutos</span>
-          </div>
-          <a class="btn" (click)="startExam('matematicas')" style="cursor: pointer;">Comenzar sección</a>
+
+    <!-- Lista de exámenes disponibles -->
+    @if (availableExams().length > 0) {
+      <div class="exams-list-section">
+        <h2 class="section-title">📋 Mis Exámenes</h2>
+        
+        <div class="exam-sections">
+          @for (exam of availableExams(); track exam.id) {
+            <div class="section-card">
+              <div class="section-header">
+                <div class="section-icon">{{ getSubjectIcon(exam.materia) }}</div>
+                <h2>{{ exam.titulo }}</h2>
+              </div>
+              <div class="section-content">
+                <div class="exam-info-grid">
+                  <div class="exam-info-item">
+                    <span class="info-label">📚 Materia:</span>
+                    <span class="info-value">{{ exam.materia }}</span>
+                  </div>
+                  <div class="exam-info-item">
+                    <span class="info-label">👨‍🏫 Profesor:</span>
+                    <span class="info-value">{{ exam.profesor }}</span>
+                  </div>
+                  <div class="exam-info-item">
+                    <span class="info-label">⏱️ Duración:</span>
+                    <span class="info-value">{{ exam.duracion }} minutos</span>
+                  </div>
+                  <div class="exam-info-item">
+                    <span class="info-label">📅 Fecha límite:</span>
+                    <span class="info-value">{{ exam.fechaLimite }}</span>
+                  </div>
+                  <div class="exam-info-item">
+                    <span class="info-label">🔢 Código:</span>
+                    <span class="info-value code">{{ exam.codigo }}</span>
+                  </div>
+                  <div class="exam-info-item">
+                    <span class="info-label">🎯 Intentos:</span>
+                    <span class="info-value">{{ exam.intentos }}/{{ exam.intentosMaximos }}</span>
+                  </div>
+                </div>
+
+                <div class="exam-status" [style.background]="getStatusColor(exam.estado) + '20'" [style.border-left]="'4px solid ' + getStatusColor(exam.estado)">
+                  <span [style.color]="getStatusColor(exam.estado)">
+                    ⬤ {{ getStatusText(exam.estado) }}
+                  </span>
+                </div>
+
+                <div class="exam-actions">
+                  @if (exam.estado === 'disponible' || exam.estado === 'en-progreso') {
+                    <button class="btn btn-start" (click)="startExam(exam.id)">
+                      <span>▶️</span> Comenzar Examen
+                    </button>
+                  }
+                  @if (exam.estado === 'completado') {
+                    <button class="btn btn-results" disabled>
+                      <span>✅</span> Completado
+                    </button>
+                  }
+                  <button class="btn btn-remove" (click)="removeExam(exam.id)">
+                    <span>🗑️</span> Eliminar
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
         </div>
       </div>
-      
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon">📚</div>
-          <h2>Lectura</h2>
-        </div>
-        <div class="section-content">
-          <p>Mide tu comprensión, uso y reflexión sobre textos escritos para alcanzar objetivos personales y participar efectivamente en la sociedad.</p>
-          <div class="section-stats">
-            <span>📝 25 preguntas</span> • <span>⏱️ 50 minutos</span>
-          </div>
-          <a class="btn" (click)="startExam('lectura')" style="cursor: pointer;">Comenzar sección</a>
-        </div>
+    } @else {
+      <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <h3>No tienes exámenes registrados</h3>
+        <p>Ingresa el código que te proporcionó tu profesor para agregar un examen</p>
       </div>
-      
-      <div class="section-card">
-        <div class="section-header">
-          <div class="section-icon">🔬</div>
-          <h2>Ciencias</h2>
-        </div>
-        <div class="section-content">
-          <p>Evalúa tu conocimiento científico y la capacidad de aplicarlo en situaciones de la vida real, identificando cuestiones e ideas basadas en evidencia.</p>
-          <div class="section-stats">
-            <span>📝 28 preguntas</span> • <span>⏱️ 55 minutos</span>
-          </div>
-          <a class="btn" (click)="startExam('ciencias')" style="cursor: pointer;">Comenzar sección</a>
-        </div>
-      </div>
-    </div>
+    }
     
     <div class="info-section">
       <h2>Información importante</h2>
@@ -112,4 +144,55 @@
   </footer>
   
   <div class="help-float" (click)="showHelp()">?</div>
+
+  <!-- Modal para ingresar código de examen -->
+  @if (showCodeModal()) {
+    <div class="modal-backdrop" (click)="closeCodeModal()">
+      <div class="modal-code" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h3>🔑 Ingresar Código de Examen</h3>
+          <button class="modal-close" (click)="closeCodeModal()">✕</button>
+        </div>
+        
+        <div class="modal-body">
+          <p class="modal-description">
+            Ingresa el código de 4-8 caracteres que te proporcionó tu profesor
+          </p>
+          
+          <div class="code-input-group">
+            <label for="examCode">Código de Examen</label>
+            <input
+              type="text"
+              id="examCode"
+              [(ngModel)]="examCode"
+              placeholder="Ej: ABC123"
+              class="code-input"
+              maxlength="20"
+              [disabled]="isLoading()"
+              (keyup.enter)="submitExamCode()"
+              autofocus
+            />
+          </div>
+
+          <div class="modal-info">
+            <span class="info-icon">💡</span>
+            <p>El código es proporcionado por tu profesor y te da acceso al examen.</p>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="closeCodeModal()" [disabled]="isLoading()">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" (click)="submitExamCode()" [disabled]="isLoading() || !examCode()">
+            @if (isLoading()) {
+              <span>⏳ Verificando...</span>
+            } @else {
+              <span>✓ Registrar Examen</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
