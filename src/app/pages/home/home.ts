@@ -2,10 +2,15 @@ import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { environment } from '../../app.config';
+import { HttpHeaders } from '@angular/common/http';
+// jwtDecode no es necesario aquí si solo leemos datos del usuario ya guardados
 
 @Component({
   selector: 'app-home',
-  imports: [CommonModule, FormsModule],
+  standalone: true, // Asegúrate de que sea standalone si usas imports
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -15,11 +20,13 @@ export class Home implements OnInit {
   showCodeModal = signal(false);
   examCode = signal('');
   isLoading = signal(false);
-  
+  errorMessage = signal(''); // Variable que faltaba
+
   // Lista de exámenes disponibles para el estudiante
   availableExams = signal<any[]>([]);
 
-  constructor(private router: Router) {}
+  // CORRECCIÓN: Se agregó 'private http: HttpClient' al constructor
+  constructor(private router: Router, private http: HttpClient) {}
 
   ngOnInit() {
     // Verificar si el usuario está autenticado
@@ -29,26 +36,61 @@ export class Home implements OnInit {
       return;
     }
 
-    const userData = JSON.parse(user);
-    this.userEmail.set(userData.email || 'Usuario');
-    this.userName.set(userData.nombre || userData.name || 'Estudiante');
-
-    // Cargar exámenes guardados del estudiante
-    this.loadStudentExams();
+    try {
+      const userData = JSON.parse(user);
+      this.userEmail.set(userData.email || 'Usuario');
+      // Ajuste para leer nombre o name según como lo guardes
+      this.userName.set(userData.nombre || userData.name || 'Estudiante'); 
+      
+      // Cargar exámenes guardados del estudiante
+      this.loadStudentExams();
+    } catch (e) {
+      // Si el JSON del usuario está corrupto, limpiar y salir
+      localStorage.removeItem('user');
+      this.router.navigate(['/login']);
+    }
   }
 
   /**
    * Carga los exámenes que el estudiante ha registrado
+   * CORREGIDO: Se eliminó la lógica de Login copiada y se puso lógica de carga.
    */
   loadStudentExams() {
-    try {
-      const studentExams = localStorage.getItem('student_exams');
-      if (studentExams) {
-        this.availableExams.set(JSON.parse(studentExams));
+    this.isLoading.set(true);
+    
+    // --- OPCIÓN A: Carga desde LocalStorage (Para que funcione tu demo actual) ---
+   /*  try {
+      const savedExams = localStorage.getItem('student_exams');
+      if (savedExams) {
+        this.availableExams.set(JSON.parse(savedExams));
       }
     } catch (error) {
-      console.error('Error al cargar exámenes:', error);
+      console.error('Error leyendo localStorage', error);
+      this.availableExams.set([]);
     }
+    this.isLoading.set(false);
+ */
+    // --- OPCIÓN B: Carga Real desde API (Descomentar cuando tengas el endpoint) ---
+    
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+   const headers = new HttpHeaders({
+    'token': user.token
+  });
+    this.http.get(`${environment.apiUrl}/encuestas/listaEncuestasPorAlumno/${user.idusuario}`, { headers: headers })
+      .subscribe({
+        next: (resp: any) => {
+          if (resp.Success) {
+             this.availableExams.set(resp.body || []);
+          }
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Error cargando exámenes', err);
+          this.errorMessage.set('No se pudieron cargar los exámenes');
+          this.isLoading.set(false);
+        }
+      });
+    
   }
 
   /**
@@ -81,9 +123,6 @@ export class Home implements OnInit {
     this.isLoading.set(true);
 
     try {
-      // TODO: Aquí deberías hacer una llamada a tu API para validar el código
-      // Por ahora, simulamos la validación
-      
       // Simulación de llamada a API
       await this.validateExamCode(code);
       
@@ -91,7 +130,7 @@ export class Home implements OnInit {
       alert(`✅ ¡Examen registrado exitosamente!\n\nCódigo: ${code}\n\nEl examen aparecerá en tu lista de exámenes disponibles.`);
       
       this.closeCodeModal();
-      this.loadStudentExams();
+      this.loadStudentExams(); // Recargar la lista
       
     } catch (error: any) {
       alert(`❌ Error: ${error.message}`);
@@ -105,17 +144,9 @@ export class Home implements OnInit {
    */
   private async validateExamCode(code: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      // TODO: Reemplazar con llamada real a la API
-      // Ejemplo:
-      // this.http.post('/api/estudiante/registrar-examen', { codigo: code })
-      //   .subscribe({
-      //     next: (response) => resolve(response),
-      //     error: (error) => reject(error)
-      //   });
-
       // Simulación temporal
       setTimeout(() => {
-        // Validar formato del código (por ejemplo, 6 caracteres alfanuméricos)
+        // Validar formato del código
         if (code.length < 4) {
           reject(new Error('El código debe tener al menos 4 caracteres'));
           return;
@@ -135,7 +166,7 @@ export class Home implements OnInit {
           intentosMaximos: 3
         };
 
-        // Guardar en localStorage (temporal)
+        // Leer exámenes actuales
         const currentExams = this.availableExams();
         
         // Verificar si el código ya fue registrado
@@ -144,8 +175,14 @@ export class Home implements OnInit {
           return;
         }
 
-        currentExams.push(mockExam);
-        localStorage.setItem('student_exams', JSON.stringify(currentExams));
+        // Agregar y guardar
+        const updatedExams = [...currentExams, mockExam];
+        
+        // Guardamos en LocalStorage para persistencia simple
+        localStorage.setItem('student_exams', JSON.stringify(updatedExams));
+        
+        // Actualizamos la señal localmente también (aunque loadStudentExams lo hará de nuevo)
+        this.availableExams.set(updatedExams);
         
         resolve();
       }, 1000);
@@ -156,7 +193,6 @@ export class Home implements OnInit {
    * Inicia un examen
    */
   startExam(examId: number) {
-    // Verificar si el examen está disponible
     const exam = this.availableExams().find(e => e.id === examId);
     
     if (!exam) {
@@ -174,7 +210,6 @@ export class Home implements OnInit {
       return;
     }
 
-    // Verificar fecha límite
     const fechaLimite = new Date(exam.fechaLimite);
     const hoy = new Date();
     
@@ -183,7 +218,6 @@ export class Home implements OnInit {
       return;
     }
 
-    // Confirmar inicio
     if (confirm(`¿Deseas comenzar el examen "${exam.titulo}"?\n\nDuración: ${exam.duracion} minutos\nIntentos restantes: ${exam.intentosMaximos - exam.intentos}`)) {
       this.router.navigate(['/examen', examId]);
     }
@@ -200,9 +234,6 @@ export class Home implements OnInit {
     }
   }
 
-  /**
-   * Cierra sesión
-   */
   logout() {
     if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
       localStorage.removeItem('user');
@@ -210,23 +241,15 @@ export class Home implements OnInit {
     }
   }
 
-  /**
-   * Muestra ayuda
-   */
   showHelp() {
     alert(
       '📚 AYUDA - Sistema de Exámenes\n\n' +
       '1. Ingresa el código de examen que te proporcionó tu profesor\n' +
       '2. El examen aparecerá en tu lista de exámenes disponibles\n' +
-      '3. Haz clic en "Comenzar Examen" cuando estés listo\n\n' +
-      '¿Necesitas más ayuda?\n' +
-      'Contacta a: soporte@ejemplo.com'
+      '3. Haz clic en "Comenzar Examen" cuando estés listo'
     );
   }
 
-  /**
-   * Obtiene el icono según la materia
-   */
   getSubjectIcon(materia: string): string {
     const icons: { [key: string]: string } = {
       'Matemáticas': '📊',
@@ -239,9 +262,6 @@ export class Home implements OnInit {
     return icons[materia] || '📝';
   }
 
-  /**
-   * Obtiene el color según el estado
-   */
   getStatusColor(estado: string): string {
     const colors: { [key: string]: string } = {
       'disponible': '#28a745',
@@ -252,9 +272,6 @@ export class Home implements OnInit {
     return colors[estado] || '#6c757d';
   }
 
-  /**
-   * Obtiene el texto del estado
-   */
   getStatusText(estado: string): string {
     const texts: { [key: string]: string } = {
       'disponible': 'Disponible',

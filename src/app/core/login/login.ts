@@ -63,7 +63,8 @@ export class Login {
           // Guardar datos del usuario
           localStorage.setItem('user', JSON.stringify({
             email: this.email(),
-            type: decoded.tipousuario === 1 ? 'teacher' : 'student'
+            type: decoded.tipousuario === 1 ? 'teacher' : 'student', token: token,
+            idusuario: decoded.id
           }));
 
           // Definir ruta según el tipo de usuario
