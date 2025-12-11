@@ -1,6 +1,6 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, PLATFORM_ID, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HttpClient } from '@angular/common/http';
 import { environment } from '../../app.config';
@@ -21,14 +21,24 @@ export class Home implements OnInit {
   examCode = signal('');
   isLoading = signal(false);
   errorMessage = signal(''); // Variable que faltaba
+  isBrowser: boolean = false;
 
   // Lista de exámenes disponibles para el estudiante
   availableExams = signal<any[]>([]);
 
   // CORRECCIÓN: Se agregó 'private http: HttpClient' al constructor
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(
+    private router: Router, 
+    private http: HttpClient, 
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
+  }
 
   ngOnInit() {
+    if (!this.isBrowser) {
+        return; // Detiene la ejecución en el servidor
+    }
     // Verificar si el usuario está autenticado
     const user = localStorage.getItem('user');
     if (!user) {
@@ -58,24 +68,10 @@ export class Home implements OnInit {
   loadStudentExams() {
     this.isLoading.set(true);
     
-    // --- OPCIÓN A: Carga desde LocalStorage (Para que funcione tu demo actual) ---
-   /*  try {
-      const savedExams = localStorage.getItem('student_exams');
-      if (savedExams) {
-        this.availableExams.set(JSON.parse(savedExams));
-      }
-    } catch (error) {
-      console.error('Error leyendo localStorage', error);
-      this.availableExams.set([]);
-    }
-    this.isLoading.set(false);
- */
-    // --- OPCIÓN B: Carga Real desde API (Descomentar cuando tengas el endpoint) ---
-    
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-   const headers = new HttpHeaders({
-    'token': user.token
-  });
+    const headers = new HttpHeaders({
+      'token': user.token
+    });
     this.http.get(`${environment.apiUrl}/encuestas/listaEncuestasPorAlumno/${user.idusuario}`, { headers: headers })
       .subscribe({
         next: (resp: any) => {
